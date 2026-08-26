@@ -408,6 +408,32 @@ function buildShoppingListFrom(
   );
 }
 
+export async function getOrderingContext(): Promise<{
+  settings: AppSettings;
+  session: LunchRunSession;
+  sessionAccepting: boolean;
+  orderingOpen: boolean;
+  orderCount: number;
+}> {
+  const db = createServiceClient();
+  const settings = await fetchSettings(db);
+  const session = await getOrCreateTodaySession(db);
+  const { count, error } = await db
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("session_id", session.id)
+    .neq("status", "cancelled");
+  if (error) throw error;
+  const orderCount = count ?? 0;
+  return {
+    settings,
+    session,
+    orderCount,
+    sessionAccepting: isSessionAcceptingOrders(session, settings, orderCount),
+    orderingOpen: isOrderingOpen(session, settings, orderCount),
+  };
+}
+
 export async function getCatalog(): Promise<{
   products: ProductWithCategory[];
   categories: Category[];

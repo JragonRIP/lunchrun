@@ -1,18 +1,18 @@
 import { CustomerShell } from "@/components/customer/customer-shell";
-import { getCatalog } from "@/lib/services/data";
+import { getOrderingContext } from "@/lib/services/data";
 
 export default async function CustomerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const catalog = await getCatalog();
+  const ctx = await getOrderingContext();
 
   return (
     <CustomerShell
-      settings={catalog.settings}
-      sessionAccepting={catalog.sessionAccepting}
-      cutoffTime={catalog.session.cutoff_time}
+      settings={ctx.settings}
+      sessionAccepting={ctx.sessionAccepting}
+      cutoffTime={ctx.session.cutoff_time}
     >
       {children}
     </CustomerShell>

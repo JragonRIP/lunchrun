@@ -1,18 +1,16 @@
 import Link from "next/link";
 import { FeesBarChart, StatusDonut } from "@/components/admin/charts";
-import { LaunchChecklist } from "@/components/admin/launch-checklist";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getAdminDashboard, getRevenueSummary, getSettings } from "@/lib/services/data";
+import { getAdminDashboard, getRevenueSummary } from "@/lib/services/data";
 import { formatMoney } from "@/lib/utils";
 
 export const metadata = { title: "Admin Dashboard" };
 
 export default async function AdminDashboardPage() {
-  const [dash, revenue, settings] = await Promise.all([
+  const [dash, revenue] = await Promise.all([
     getAdminDashboard(),
     getRevenueSummary(),
-    getSettings(),
   ]);
 
   const statusData = [
@@ -66,11 +64,6 @@ export default async function AdminDashboardPage() {
           </Link>
         </div>
       </div>
-
-      <LaunchChecklist
-        testMode={settings.test_mode}
-        hasDeliveredOrder={dash.metrics.delivered > 0}
-      />
 
       {dash.metrics.stalePrices > 0 ? (
         <div className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">

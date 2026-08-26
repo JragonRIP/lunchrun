@@ -28,6 +28,28 @@ import type { CheckoutInput } from "@/lib/validation/schemas";
 
 export { isDemoMode, isOrderingOpen };
 
+export async function getOrderingContext(): Promise<{
+  settings: AppSettings;
+  session: LunchRunSession;
+  sessionAccepting: boolean;
+  orderingOpen: boolean;
+  orderCount: number;
+}> {
+  const state = getDemoState();
+  const orderCount = state.orders.filter((o) => o.status !== "cancelled").length;
+  return {
+    settings: state.settings,
+    session: state.session,
+    orderCount,
+    sessionAccepting: isSessionAcceptingOrders(
+      state.session,
+      state.settings,
+      orderCount,
+    ),
+    orderingOpen: isOrderingOpen(state.session, state.settings, orderCount),
+  };
+}
+
 export async function getCatalog(): Promise<{
   products: ProductWithCategory[];
   categories: Category[];

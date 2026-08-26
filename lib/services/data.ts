@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { isDemoMode } from "@/lib/demo/store";
 import * as demo from "@/lib/services/demo-data";
 import * as sb from "@/lib/services/supabase-data";
@@ -18,9 +19,9 @@ function api() {
   return isDemoMode() ? demo : sb;
 }
 
-export async function getCatalog() {
-  return api().getCatalog();
-}
+export const getCatalog = cache(async () => api().getCatalog());
+
+export const getOrderingContext = cache(async () => api().getOrderingContext());
 
 export async function getOrderByToken(token: string) {
   return api().getOrderByToken(token);
@@ -34,17 +35,29 @@ export async function submitOrder(input: CheckoutInput) {
   return api().submitOrder(input);
 }
 
-export async function getAdminDashboard() {
-  return api().getAdminDashboard();
-}
+export const getSettings = cache(async (): Promise<AppSettings> => {
+  return api().getSettings();
+});
 
-export async function getOrders(filter?: string, search?: string) {
+export const getAdminDashboard = cache(async () => api().getAdminDashboard());
+
+export const getOrders = cache(async (filter?: string, search?: string) => {
   return api().getOrders(filter, search);
-}
+});
 
-export async function getShoppingList() {
-  return api().getShoppingList();
-}
+export const getShoppingList = cache(async () => api().getShoppingList());
+
+export const getProducts = cache(async (): Promise<Product[]> => {
+  return api().getProducts();
+});
+
+export const getCategories = cache(async (): Promise<Category[]> => {
+  return api().getCategories();
+});
+
+export const getPriceData = cache(async () => api().getPriceData());
+
+export const getRevenueSummary = cache(async () => api().getRevenueSummary());
 
 export async function updateShelfPrice(productKey: string, price: number) {
   return api().updateShelfPrice(productKey, price);
@@ -85,18 +98,6 @@ export async function markNotFound(orderId: string) {
   return api().markNotFound(orderId);
 }
 
-export async function getProducts(): Promise<Product[]> {
-  return api().getProducts();
-}
-
-export async function getCategories(): Promise<Category[]> {
-  return api().getCategories();
-}
-
-export async function getSettings(): Promise<AppSettings> {
-  return api().getSettings();
-}
-
 export async function saveSettings(settings: AppSettings) {
   return api().saveSettings(settings);
 }
@@ -127,14 +128,6 @@ export async function archiveProduct(id: string) {
 
 export async function importPrices(items: PriceImportItem[], source = "api") {
   return api().importPrices(items, source);
-}
-
-export async function getPriceData() {
-  return api().getPriceData();
-}
-
-export async function getRevenueSummary() {
-  return api().getRevenueSummary();
 }
 
 export async function updateCategoryOrder(orderedIds: string[]) {

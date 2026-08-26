@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
+import { NavLink } from "@/components/shared/nav-link";
 import { TestModeToggle } from "@/components/admin/test-mode-toggle";
 import { adminLogoutAction } from "@/lib/actions";
 import { cn } from "@/lib/utils";
@@ -85,24 +86,27 @@ export function AdminShell({
           <p className="mt-1 text-xs text-neutral-400">Operator console</p>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {ALL_NAV.map(({ href, label, icon: Icon }) => {
-            const active = isActive(pathname, href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
+          {ALL_NAV.map(({ href, label, icon: Icon }) => (
+            <NavLink
+              key={href}
+              href={href}
+              match={href === "/admin" ? "exact" : "prefix"}
+              linkClassName="block"
+              className={({ active }) =>
+                cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition",
                   active
                     ? "bg-lr-yellow text-lr-black"
                     : "text-neutral-300 hover:bg-white/5 hover:text-white",
-                )}
-              >
+                )
+              }
+            >
+              <span className="flex items-center gap-3">
                 <Icon className="h-4 w-4" />
                 {label}
-              </Link>
-            );
-          })}
+              </span>
+            </NavLink>
+          ))}
         </nav>
         <div className="space-y-2 border-t border-white/10 p-3">
           <TestModeToggle enabled={testMode} compact variant="dark" />
@@ -140,6 +144,7 @@ export function AdminShell({
             <TestModeToggle enabled={testMode} compact variant="light" />
             <Link
               href="/admin/shop"
+              prefetch
               className="rounded-xl bg-lr-yellow px-3 py-2 text-xs font-black text-lr-black"
             >
               Shop
@@ -160,29 +165,34 @@ export function AdminShell({
         {/* Mobile bottom nav — primary operator actions */}
         <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]">
-            {PRIMARY_NAV.map(({ href, label, icon: Icon, match }) => {
-              const active = isActive(pathname, href, match);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={cn(
-                    "flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2.5 text-[11px] font-bold transition",
+            {PRIMARY_NAV.map(({ href, label, icon: Icon, match }) => (
+              <NavLink
+                key={href}
+                href={href}
+                match={match}
+                linkClassName="flex min-w-0 flex-1"
+                className={({ active }) =>
+                  cn(
+                    "flex w-full flex-col items-center gap-1 px-1 py-2.5 text-[11px] font-bold transition",
                     active ? "text-lr-black" : "text-neutral-400",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-2xl",
-                      active ? "bg-lr-yellow" : "bg-transparent",
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  {label}
-                </Link>
-              );
-            })}
+                  )
+                }
+              >
+                {({ active }) => (
+                  <>
+                    <span
+                      className={cn(
+                        "flex h-9 w-9 items-center justify-center rounded-2xl",
+                        active ? "bg-lr-yellow" : "bg-transparent",
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    {label}
+                  </>
+                )}
+              </NavLink>
+            ))}
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
@@ -228,24 +238,28 @@ export function AdminShell({
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              {ALL_NAV.map(({ href, label, icon: Icon }) => {
-                const active = isActive(pathname, href);
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={cn(
+              {ALL_NAV.map(({ href, label, icon: Icon }) => (
+                <NavLink
+                  key={href}
+                  href={href}
+                  match={href === "/admin" ? "exact" : "prefix"}
+                  onClick={() => setMenuOpen(false)}
+                  linkClassName="block"
+                  className={({ active }) =>
+                    cn(
                       "flex items-center gap-3 rounded-2xl border px-3 py-3.5 text-sm font-bold",
                       active
                         ? "border-lr-black bg-lr-yellow"
                         : "border-neutral-100 bg-neutral-50",
-                    )}
-                  >
+                    )
+                  }
+                >
+                  <span className="flex items-center gap-3">
                     <Icon className="h-4 w-4 shrink-0" />
                     {label}
-                  </Link>
-                );
-              })}
+                  </span>
+                </NavLink>
+              ))}
             </div>
 
             <button
