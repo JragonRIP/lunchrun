@@ -108,10 +108,33 @@ function snack(opts: {
 }
 
 export const DEMO_PRODUCTS: Product[] = [
-  // Energy
-  snack({ id: "p-monster-ultra", name: "Monster Energy Ultra White", brand: "Monster", description: "Zero sugar energy drink", size: "16 oz", flavor: "Ultra White", category_id: "cat-energy", price: 2.85, popularity: 98, max_quantity: 4, external: "dg-monster-ultra-white" }),
-  snack({ id: "p-monster-orig", name: "Monster Energy Original", brand: "Monster", description: "Classic green Monster", size: "16 oz", flavor: "Original", category_id: "cat-energy", price: 2.85, popularity: 90, max_quantity: 4, external: "dg-monster-original" }),
-  snack({ id: "p-redbull", name: "Red Bull", brand: "Red Bull", description: "Energy drink", size: "8.4 oz", flavor: "Original", category_id: "cat-energy", price: 2.75, popularity: 85, max_quantity: 4, external: "dg-redbull" }),
+  // Monster — 16 oz cans
+  snack({ id: "p-monster-orig", name: "Monster Energy Original", brand: "Monster", description: "Classic green Monster", size: "16 oz", flavor: "Original", category_id: "cat-energy", price: 2.85, popularity: 96, max_quantity: 4, external: "dg-monster-original" }),
+  snack({ id: "p-monster-ultra", name: "Monster Zero Ultra", brand: "Monster", description: "Zero sugar, light citrus", size: "16 oz", flavor: "Zero Ultra", category_id: "cat-energy", price: 2.85, popularity: 98, max_quantity: 4, external: "dg-monster-zero-ultra" }),
+  snack({ id: "p-monster-rosa", name: "Monster Ultra Rosá", brand: "Monster", description: "Zero sugar, fruity floral", size: "16 oz", flavor: "Ultra Rosá", category_id: "cat-energy", price: 2.85, popularity: 88, max_quantity: 4, external: "dg-monster-ultra-rosa" }),
+  snack({ id: "p-monster-paradise", name: "Monster Ultra Paradise", brand: "Monster", description: "Zero sugar, island fruit", size: "16 oz", flavor: "Ultra Paradise", category_id: "cat-energy", price: 2.85, popularity: 87, max_quantity: 4, external: "dg-monster-ultra-paradise" }),
+  snack({ id: "p-monster-rwb", name: "Monster Ultra Red White & Blue Razz", brand: "Monster", description: "Zero sugar, blue raspberry rocket-pop", size: "16 oz", flavor: "Red White & Blue Razz", category_id: "cat-energy", price: 2.85, popularity: 86, max_quantity: 4, external: "dg-monster-ultra-rwb" }),
+  snack({ id: "p-monster-mango", name: "Juice Monster Mango Loco", brand: "Monster", description: "Tropical mango energy drink", size: "16 oz", flavor: "Mango Loco", category_id: "cat-energy", price: 2.95, popularity: 84, max_quantity: 4, external: "dg-monster-mango-loco" }),
+  snack({ id: "p-monster-punch", name: "Juice Monster Pacific Punch", brand: "Monster", description: "Fruit punch energy drink", size: "16 oz", flavor: "Pacific Punch", category_id: "cat-energy", price: 2.95, popularity: 83, max_quantity: 4, external: "dg-monster-pacific-punch" }),
+  snack({ id: "p-java-mean", name: "Java Monster Mean Bean", brand: "Monster", description: "Coffee and cream energy drink", size: "15 oz", flavor: "Mean Bean", category_id: "cat-energy", price: 3.15, popularity: 80, max_quantity: 4, external: "dg-java-mean-bean" }),
+  snack({ id: "p-java-moca", name: "Java Monster Loca Moca", brand: "Monster", description: "Coffee mocha energy drink", size: "15 oz", flavor: "Loca Moca", category_id: "cat-energy", price: 3.15, popularity: 79, max_quantity: 4, external: "dg-java-loca-moca" }),
+  snack({ id: "p-java-irish", name: "Java Monster Irish Crème", brand: "Monster", description: "Coffee Irish crème energy drink", size: "15 oz", flavor: "Irish Crème", category_id: "cat-energy", price: 3.15, popularity: 78, max_quantity: 4, external: "dg-java-irish-creme" }),
+  // Red Bull — 8.4 oz cans
+  snack({ id: "p-redbull", name: "Red Bull Original", brand: "Red Bull", description: "Classic energy drink", size: "8.4 oz", flavor: "Original", category_id: "cat-energy", price: 2.75, popularity: 95, max_quantity: 4, external: "dg-redbull" }),
+  snack({ id: "p-redbull-sf", name: "Red Bull Sugarfree", brand: "Red Bull", description: "Sugar-free energy drink", size: "8.4 oz", flavor: "Sugarfree", category_id: "cat-energy", price: 2.75, popularity: 90, max_quantity: 4, external: "dg-redbull-sugarfree" }),
+  snack({ id: "p-redbull-zero", name: "Red Bull Zero", brand: "Red Bull", description: "Zero calorie energy drink", size: "8.4 oz", flavor: "Zero", category_id: "cat-energy", price: 2.75, popularity: 89, max_quantity: 4, external: "dg-redbull-zero" }),
+  snack({ id: "p-redbull-pear", name: "Red Bull Winter Edition Pear Cinnamon", brand: "Red Bull", description: "Pear cinnamon winter edition", size: "8.4 oz", flavor: "Pear Cinnamon", category_id: "cat-energy", price: 2.95, popularity: 72, max_quantity: 4, external: "dg-redbull-pear-cinnamon" }),
+  snack({ id: "p-redbull-dragon", name: "Red Bull Green Edition Dragon Fruit", brand: "Red Bull", description: "Dragon fruit edition", size: "8.4 oz", flavor: "Dragon Fruit", category_id: "cat-energy", price: 2.95, popularity: 82, max_quantity: 4, external: "dg-redbull-dragon-fruit" }),
+  snack({ id: "p-redbull-june", name: "Red Bull Sea Blue Edition Juneberry", brand: "Red Bull", description: "Juneberry sea blue edition", size: "8.4 oz", flavor: "Juneberry", category_id: "cat-energy", price: 2.95, popularity: 81, max_quantity: 4, external: "dg-redbull-juneberry" }),
+  snack({ id: "p-redbull-tropical", name: "Red Bull Yellow Edition Tropical", brand: "Red Bull", description: "Tropical yellow edition", size: "8.4 oz", flavor: "Tropical", category_id: "cat-energy", price: 2.95, popularity: 83, max_quantity: 4, external: "dg-redbull-tropical" }),
+  snack({ id: "p-redbull-blue", name: "Red Bull Blue Edition Blueberry", brand: "Red Bull", description: "Blueberry edition", size: "8.4 oz", flavor: "Blueberry", category_id: "cat-energy", price: 2.95, popularity: 84, max_quantity: 4, external: "dg-redbull-blueberry" }),
+  snack({ id: "p-redbull-coconut", name: "Red Bull Coconut Edition Coconut Berry", brand: "Red Bull", description: "Coconut berry edition", size: "8.4 oz", flavor: "Coconut Berry", category_id: "cat-energy", price: 2.95, popularity: 80, max_quantity: 4, external: "dg-redbull-coconut-berry" }),
+  snack({ id: "p-redbull-melon", name: "Red Bull Red Edition Watermelon", brand: "Red Bull", description: "Watermelon edition", size: "8.4 oz", flavor: "Watermelon", category_id: "cat-energy", price: 2.95, popularity: 85, max_quantity: 4, external: "dg-redbull-watermelon" }),
+  snack({ id: "p-redbull-peach", name: "Red Bull Peach Edition Peach Nectarine", brand: "Red Bull", description: "Peach nectarine edition", size: "8.4 oz", flavor: "Peach Nectarine", category_id: "cat-energy", price: 2.95, popularity: 82, max_quantity: 4, external: "dg-redbull-peach-nectarine" }),
+  snack({ id: "p-redbull-white-peach", name: "Red Bull White Peach", brand: "Red Bull", description: "White peach energy drink", size: "8.4 oz", flavor: "White Peach", category_id: "cat-energy", price: 2.95, popularity: 81, max_quantity: 4, external: "dg-redbull-white-peach" }),
+  snack({ id: "p-redbull-vanilla", name: "Red Bull Iced Vanilla Berry", brand: "Red Bull", description: "Iced vanilla berry", size: "8.4 oz", flavor: "Iced Vanilla Berry", category_id: "cat-energy", price: 2.95, popularity: 79, max_quantity: 4, external: "dg-redbull-iced-vanilla-berry" }),
+  snack({ id: "p-redbull-strawberry", name: "Red Bull Strawberry Apricot", brand: "Red Bull", description: "Strawberry apricot", size: "8.4 oz", flavor: "Strawberry Apricot", category_id: "cat-energy", price: 2.95, popularity: 78, max_quantity: 4, external: "dg-redbull-strawberry-apricot" }),
+  snack({ id: "p-redbull-wild", name: "Red Bull Wild Berries", brand: "Red Bull", description: "Wild berries", size: "8.4 oz", flavor: "Wild Berries", category_id: "cat-energy", price: 2.95, popularity: 80, max_quantity: 4, external: "dg-redbull-wild-berries" }),
   // Drinks
   snack({ id: "p-drpepper", name: "Dr Pepper", brand: "Dr Pepper", description: "Soda", size: "20 oz", flavor: "Original", category_id: "cat-drinks", price: 1.75, popularity: 80, max_quantity: 4, external: "dg-drpepper-20" }),
   snack({ id: "p-coke", name: "Coca-Cola", brand: "Coca-Cola", description: "Classic cola", size: "20 oz", flavor: "Original", category_id: "cat-drinks", price: 1.75, popularity: 78, max_quantity: 4, external: "dg-coke-20" }),
@@ -215,10 +238,10 @@ function makeItem(
 const tylerItems: OrderItem[] = [
   makeItem("oi-t1", "ord-tyler", {
     product_id: "p-monster-ultra",
-    product_name: "Monster Energy Ultra White",
+    product_name: "Monster Zero Ultra",
     brand: "Monster",
     size: "16 oz",
-    flavor: "Ultra White",
+    flavor: "Zero Ultra",
     quantity: 1,
     estimated_price: 2.85,
     min_estimated: 2.5,
@@ -279,9 +302,10 @@ const emmaItems: OrderItem[] = [
 const jakeItems: OrderItem[] = [
   makeItem("oi-j1", "ord-jake", {
     product_id: "p-redbull",
-    product_name: "Red Bull",
+    product_name: "Red Bull Original",
     brand: "Red Bull",
     size: "8.4 oz",
+    flavor: "Original",
     quantity: 2,
     estimated_price: 2.75,
     min_estimated: 2.25,

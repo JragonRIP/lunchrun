@@ -47,10 +47,33 @@ function p(id, name, brand, description, size, flavor, category_id, price, popul
 
 /** Keep-list snacks + core catalog staples */
 export const CATALOG = [
-  // Energy (existing)
-  p("cccc0001-0000-4000-8000-000000000001", "Monster Energy Ultra White", "Monster", "Zero sugar energy drink", "16 oz", "Ultra White", CAT.energy, 2.85, 98, 4, "dg-monster-ultra-white"),
-  p("cccc0001-0000-4000-8000-000000000002", "Monster Energy Original", "Monster", "Classic green Monster", "16 oz", "Original", CAT.energy, 2.85, 90, 4, "dg-monster-original"),
-  p("cccc0001-0000-4000-8000-000000000003", "Red Bull", "Red Bull", "Energy drink", "8.4 oz", "Original", CAT.energy, 2.75, 85, 4, "dg-redbull"),
+  // Monster — 16 oz cans
+  p("cccc0001-0000-4000-8000-000000000002", "Monster Energy Original", "Monster", "Classic green Monster", "16 oz", "Original", CAT.energy, 2.85, 96, 4, "dg-monster-original"),
+  p("cccc0001-0000-4000-8000-000000000001", "Monster Zero Ultra", "Monster", "Zero sugar, light citrus", "16 oz", "Zero Ultra", CAT.energy, 2.85, 98, 4, "dg-monster-zero-ultra"),
+  p("cccc0001-0000-4000-8000-000000000040", "Monster Ultra Rosá", "Monster", "Zero sugar, fruity floral", "16 oz", "Ultra Rosá", CAT.energy, 2.85, 88, 4, "dg-monster-ultra-rosa"),
+  p("cccc0001-0000-4000-8000-000000000041", "Monster Ultra Paradise", "Monster", "Zero sugar, island fruit", "16 oz", "Ultra Paradise", CAT.energy, 2.85, 87, 4, "dg-monster-ultra-paradise"),
+  p("cccc0001-0000-4000-8000-000000000042", "Monster Ultra Red White & Blue Razz", "Monster", "Zero sugar, blue raspberry rocket-pop", "16 oz", "Red White & Blue Razz", CAT.energy, 2.85, 86, 4, "dg-monster-ultra-rwb"),
+  p("cccc0001-0000-4000-8000-000000000043", "Juice Monster Mango Loco", "Monster", "Tropical mango energy drink", "16 oz", "Mango Loco", CAT.energy, 2.95, 84, 4, "dg-monster-mango-loco"),
+  p("cccc0001-0000-4000-8000-000000000044", "Juice Monster Pacific Punch", "Monster", "Fruit punch energy drink", "16 oz", "Pacific Punch", CAT.energy, 2.95, 83, 4, "dg-monster-pacific-punch"),
+  p("cccc0001-0000-4000-8000-000000000045", "Java Monster Mean Bean", "Monster", "Coffee and cream energy drink", "15 oz", "Mean Bean", CAT.energy, 3.15, 80, 4, "dg-java-mean-bean"),
+  p("cccc0001-0000-4000-8000-000000000046", "Java Monster Loca Moca", "Monster", "Coffee mocha energy drink", "15 oz", "Loca Moca", CAT.energy, 3.15, 79, 4, "dg-java-loca-moca"),
+  p("cccc0001-0000-4000-8000-000000000047", "Java Monster Irish Crème", "Monster", "Coffee Irish crème energy drink", "15 oz", "Irish Crème", CAT.energy, 3.15, 78, 4, "dg-java-irish-creme"),
+  // Red Bull — 8.4 oz cans
+  p("cccc0001-0000-4000-8000-000000000003", "Red Bull Original", "Red Bull", "Classic energy drink", "8.4 oz", "Original", CAT.energy, 2.75, 95, 4, "dg-redbull"),
+  p("cccc0001-0000-4000-8000-000000000048", "Red Bull Sugarfree", "Red Bull", "Sugar-free energy drink", "8.4 oz", "Sugarfree", CAT.energy, 2.75, 90, 4, "dg-redbull-sugarfree"),
+  p("cccc0001-0000-4000-8000-000000000049", "Red Bull Zero", "Red Bull", "Zero calorie energy drink", "8.4 oz", "Zero", CAT.energy, 2.75, 89, 4, "dg-redbull-zero"),
+  p("cccc0001-0000-4000-8000-00000000004a", "Red Bull Winter Edition Pear Cinnamon", "Red Bull", "Pear cinnamon winter edition", "8.4 oz", "Pear Cinnamon", CAT.energy, 2.95, 72, 4, "dg-redbull-pear-cinnamon"),
+  p("cccc0001-0000-4000-8000-00000000004b", "Red Bull Green Edition Dragon Fruit", "Red Bull", "Dragon fruit edition", "8.4 oz", "Dragon Fruit", CAT.energy, 2.95, 82, 4, "dg-redbull-dragon-fruit"),
+  p("cccc0001-0000-4000-8000-00000000004c", "Red Bull Sea Blue Edition Juneberry", "Red Bull", "Juneberry sea blue edition", "8.4 oz", "Juneberry", CAT.energy, 2.95, 81, 4, "dg-redbull-juneberry"),
+  p("cccc0001-0000-4000-8000-00000000004d", "Red Bull Yellow Edition Tropical", "Red Bull", "Tropical yellow edition", "8.4 oz", "Tropical", CAT.energy, 2.95, 83, 4, "dg-redbull-tropical"),
+  p("cccc0001-0000-4000-8000-00000000004e", "Red Bull Blue Edition Blueberry", "Red Bull", "Blueberry edition", "8.4 oz", "Blueberry", CAT.energy, 2.95, 84, 4, "dg-redbull-blueberry"),
+  p("cccc0001-0000-4000-8000-00000000004f", "Red Bull Coconut Edition Coconut Berry", "Red Bull", "Coconut berry edition", "8.4 oz", "Coconut Berry", CAT.energy, 2.95, 80, 4, "dg-redbull-coconut-berry"),
+  p("cccc0001-0000-4000-8000-000000000050", "Red Bull Red Edition Watermelon", "Red Bull", "Watermelon edition", "8.4 oz", "Watermelon", CAT.energy, 2.95, 85, 4, "dg-redbull-watermelon"),
+  p("cccc0001-0000-4000-8000-000000000051", "Red Bull Peach Edition Peach Nectarine", "Red Bull", "Peach nectarine edition", "8.4 oz", "Peach Nectarine", CAT.energy, 2.95, 82, 4, "dg-redbull-peach-nectarine"),
+  p("cccc0001-0000-4000-8000-000000000052", "Red Bull White Peach", "Red Bull", "White peach energy drink", "8.4 oz", "White Peach", CAT.energy, 2.95, 81, 4, "dg-redbull-white-peach"),
+  p("cccc0001-0000-4000-8000-000000000053", "Red Bull Iced Vanilla Berry", "Red Bull", "Iced vanilla berry", "8.4 oz", "Iced Vanilla Berry", CAT.energy, 2.95, 79, 4, "dg-redbull-iced-vanilla-berry"),
+  p("cccc0001-0000-4000-8000-000000000054", "Red Bull Strawberry Apricot", "Red Bull", "Strawberry apricot", "8.4 oz", "Strawberry Apricot", CAT.energy, 2.95, 78, 4, "dg-redbull-strawberry-apricot"),
+  p("cccc0001-0000-4000-8000-000000000055", "Red Bull Wild Berries", "Red Bull", "Wild berries", "8.4 oz", "Wild Berries", CAT.energy, 2.95, 80, 4, "dg-redbull-wild-berries"),
   // Drinks (existing + new)
   p("cccc0001-0000-4000-8000-000000000004", "Dr Pepper", "Dr Pepper", "Soda", "20 oz", "Original", CAT.drinks, 1.75, 80, 4, "dg-drpepper-20"),
   p("cccc0001-0000-4000-8000-000000000005", "Coca-Cola", "Coca-Cola", "Classic cola", "20 oz", "Original", CAT.drinks, 1.75, 78, 4, "dg-coke-20"),

@@ -81,29 +81,161 @@ insert into public.categories (id, name, slug, icon, sort_order, shopping_order,
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa8', 'Other', 'other', 'Package', 8, 8, true)
 on conflict (id) do nothing;
 
--- Products (54 catalog items, Dollar General store)
+-- Products (76 catalog items, Dollar General store)
 insert into public.products (
   id, name, brand, description, size, flavor, category_id, store_id,
   current_price, min_price, max_price, popularity, available, active, archived,
   last_price_update, external_product_id, max_quantity
 ) values
   (
-    'cccc0001-0000-4000-8000-000000000001',
-    'Monster Energy Ultra White', 'Monster', 'Zero sugar energy drink', '16 oz', 'Ultra White',
-    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
-    2.85, 2.42, 3.56, 98, true, true, false, now(), 'dg-monster-ultra-white', 4
-  ),
-  (
     'cccc0001-0000-4000-8000-000000000002',
     'Monster Energy Original', 'Monster', 'Classic green Monster', '16 oz', 'Original',
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
-    2.85, 2.42, 3.56, 90, true, true, false, now(), 'dg-monster-original', 4
+    2.85, 2.42, 3.56, 96, true, true, false, now(), 'dg-monster-original', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000001',
+    'Monster Zero Ultra', 'Monster', 'Zero sugar, light citrus', '16 oz', 'Zero Ultra',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.85, 2.42, 3.56, 98, true, true, false, now(), 'dg-monster-zero-ultra', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000040',
+    'Monster Ultra Rosá', 'Monster', 'Zero sugar, fruity floral', '16 oz', 'Ultra Rosá',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.85, 2.42, 3.56, 88, true, true, false, now(), 'dg-monster-ultra-rosa', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000041',
+    'Monster Ultra Paradise', 'Monster', 'Zero sugar, island fruit', '16 oz', 'Ultra Paradise',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.85, 2.42, 3.56, 87, true, true, false, now(), 'dg-monster-ultra-paradise', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000042',
+    'Monster Ultra Red White & Blue Razz', 'Monster', 'Zero sugar, blue raspberry rocket-pop', '16 oz', 'Red White & Blue Razz',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.85, 2.42, 3.56, 86, true, true, false, now(), 'dg-monster-ultra-rwb', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000043',
+    'Juice Monster Mango Loco', 'Monster', 'Tropical mango energy drink', '16 oz', 'Mango Loco',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 84, true, true, false, now(), 'dg-monster-mango-loco', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000044',
+    'Juice Monster Pacific Punch', 'Monster', 'Fruit punch energy drink', '16 oz', 'Pacific Punch',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 83, true, true, false, now(), 'dg-monster-pacific-punch', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000045',
+    'Java Monster Mean Bean', 'Monster', 'Coffee and cream energy drink', '15 oz', 'Mean Bean',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    3.15, 2.68, 3.94, 80, true, true, false, now(), 'dg-java-mean-bean', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000046',
+    'Java Monster Loca Moca', 'Monster', 'Coffee mocha energy drink', '15 oz', 'Loca Moca',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    3.15, 2.68, 3.94, 79, true, true, false, now(), 'dg-java-loca-moca', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000047',
+    'Java Monster Irish Crème', 'Monster', 'Coffee Irish crème energy drink', '15 oz', 'Irish Crème',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    3.15, 2.68, 3.94, 78, true, true, false, now(), 'dg-java-irish-creme', 4
   ),
   (
     'cccc0001-0000-4000-8000-000000000003',
-    'Red Bull', 'Red Bull', 'Energy drink', '8.4 oz', 'Original',
+    'Red Bull Original', 'Red Bull', 'Classic energy drink', '8.4 oz', 'Original',
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
-    2.75, 2.34, 3.44, 85, true, true, false, now(), 'dg-redbull', 4
+    2.75, 2.34, 3.44, 95, true, true, false, now(), 'dg-redbull', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000048',
+    'Red Bull Sugarfree', 'Red Bull', 'Sugar-free energy drink', '8.4 oz', 'Sugarfree',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.75, 2.34, 3.44, 90, true, true, false, now(), 'dg-redbull-sugarfree', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000049',
+    'Red Bull Zero', 'Red Bull', 'Zero calorie energy drink', '8.4 oz', 'Zero',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.75, 2.34, 3.44, 89, true, true, false, now(), 'dg-redbull-zero', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-00000000004a',
+    'Red Bull Winter Edition Pear Cinnamon', 'Red Bull', 'Pear cinnamon winter edition', '8.4 oz', 'Pear Cinnamon',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 72, true, true, false, now(), 'dg-redbull-pear-cinnamon', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-00000000004b',
+    'Red Bull Green Edition Dragon Fruit', 'Red Bull', 'Dragon fruit edition', '8.4 oz', 'Dragon Fruit',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 82, true, true, false, now(), 'dg-redbull-dragon-fruit', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-00000000004c',
+    'Red Bull Sea Blue Edition Juneberry', 'Red Bull', 'Juneberry sea blue edition', '8.4 oz', 'Juneberry',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 81, true, true, false, now(), 'dg-redbull-juneberry', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-00000000004d',
+    'Red Bull Yellow Edition Tropical', 'Red Bull', 'Tropical yellow edition', '8.4 oz', 'Tropical',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 83, true, true, false, now(), 'dg-redbull-tropical', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-00000000004e',
+    'Red Bull Blue Edition Blueberry', 'Red Bull', 'Blueberry edition', '8.4 oz', 'Blueberry',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 84, true, true, false, now(), 'dg-redbull-blueberry', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-00000000004f',
+    'Red Bull Coconut Edition Coconut Berry', 'Red Bull', 'Coconut berry edition', '8.4 oz', 'Coconut Berry',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 80, true, true, false, now(), 'dg-redbull-coconut-berry', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000050',
+    'Red Bull Red Edition Watermelon', 'Red Bull', 'Watermelon edition', '8.4 oz', 'Watermelon',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 85, true, true, false, now(), 'dg-redbull-watermelon', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000051',
+    'Red Bull Peach Edition Peach Nectarine', 'Red Bull', 'Peach nectarine edition', '8.4 oz', 'Peach Nectarine',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 82, true, true, false, now(), 'dg-redbull-peach-nectarine', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000052',
+    'Red Bull White Peach', 'Red Bull', 'White peach energy drink', '8.4 oz', 'White Peach',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 81, true, true, false, now(), 'dg-redbull-white-peach', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000053',
+    'Red Bull Iced Vanilla Berry', 'Red Bull', 'Iced vanilla berry', '8.4 oz', 'Iced Vanilla Berry',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 79, true, true, false, now(), 'dg-redbull-iced-vanilla-berry', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000054',
+    'Red Bull Strawberry Apricot', 'Red Bull', 'Strawberry apricot', '8.4 oz', 'Strawberry Apricot',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 78, true, true, false, now(), 'dg-redbull-strawberry-apricot', 4
+  ),
+  (
+    'cccc0001-0000-4000-8000-000000000055',
+    'Red Bull Wild Berries', 'Red Bull', 'Wild berries', '8.4 oz', 'Wild Berries',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111',
+    2.95, 2.51, 3.69, 80, true, true, false, now(), 'dg-redbull-wild-berries', 4
   ),
   (
     'cccc0001-0000-4000-8000-000000000004',
