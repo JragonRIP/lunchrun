@@ -50,7 +50,7 @@ export default async function AdminDashboardPage() {
               month: "long",
               day: "numeric",
             })}{" "}
-            · Cutoff {dash.session.cutoff_time} CT
+            · Cutoff {dash.session.cutoff_time}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">

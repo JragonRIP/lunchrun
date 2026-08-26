@@ -12,7 +12,7 @@ const CHECKS = [
   },
   {
     id: "cutoff",
-    label: "Cutoff time set for Central Time",
+    label: "Cutoff time is set for today",
     href: "/admin/settings",
     done: () => true,
   },

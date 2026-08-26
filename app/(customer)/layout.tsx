@@ -11,7 +11,7 @@ export default async function CustomerLayout({
   return (
     <CustomerShell
       settings={catalog.settings}
-      orderingOpen={catalog.orderingOpen}
+      sessionAccepting={catalog.sessionAccepting}
       cutoffTime={catalog.session.cutoff_time}
     >
       {children}

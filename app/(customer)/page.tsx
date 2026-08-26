@@ -11,7 +11,7 @@ export default async function HomePage() {
       session={catalog.session}
       store={catalog.store}
       settings={catalog.settings}
-      orderingOpen={catalog.orderingOpen}
+      sessionAccepting={catalog.sessionAccepting}
       orderCount={catalog.orderCount}
       demo={catalog.demo}
     />

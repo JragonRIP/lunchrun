@@ -1,8 +1,8 @@
 import { effectiveServiceFee } from "@/lib/constants";
-import { isOrderingOpen } from "@/lib/ordering";
+import { isOrderingOpen, isSessionAcceptingOrders } from "@/lib/ordering";
 import { recalculateOrderTotals, shoppingItemKey } from "@/lib/order-money";
 import { createServiceClient } from "@/lib/supabase/admin";
-import { todayInAppTz } from "@/lib/time";
+import { msUntilCutoff, todayInAppTz } from "@/lib/time";
 import type {
   AppSettings,
   Category,
@@ -416,6 +416,7 @@ export async function getCatalog(): Promise<{
   settings: AppSettings;
   store: Store | null;
   orderingOpen: boolean;
+  sessionAccepting: boolean;
   orderCount: number;
   demo: boolean;
 }> {
@@ -463,6 +464,11 @@ export async function getCatalog(): Promise<{
     null;
 
   const orderCount = count ?? 0;
+  const sessionAccepting = isSessionAcceptingOrders(
+    session,
+    settings,
+    orderCount,
+  );
   const orderingOpen = isOrderingOpen(session, settings, orderCount);
 
   return {
@@ -473,6 +479,7 @@ export async function getCatalog(): Promise<{
     settings,
     store,
     orderingOpen,
+    sessionAccepting,
     orderCount,
     demo: false,
   };
@@ -1056,7 +1063,17 @@ export async function saveSettings(settings: AppSettings) {
     delivery_window: settings.default_delivery_window,
   };
   if (settings.active_store_id) sessionPatch.store_id = settings.active_store_id;
-  if (settings.test_mode) sessionPatch.status = "open";
+
+  // Extending cutoff past now reopens today's run (unless cancelled/completed).
+  const cutoffStillOpen = msUntilCutoff(settings.default_cutoff) > 0;
+  if (
+    (settings.test_mode || cutoffStillOpen) &&
+    session.status !== "cancelled" &&
+    session.status !== "completed"
+  ) {
+    sessionPatch.status = "open";
+  }
+
   await db.from("lunch_run_sessions").update(sessionPatch).eq("id", session.id);
 
   return settings;

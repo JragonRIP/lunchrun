@@ -98,7 +98,7 @@ export function formatCutoffLabel(time: string): string {
     minute: "2-digit",
     hour12: true,
   });
-  return `${label} CT`;
+  return label;
 }
 
 export function msUntilCutoff(time: string, now = new Date()): number {

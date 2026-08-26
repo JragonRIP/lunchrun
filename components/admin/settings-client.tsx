@@ -116,7 +116,7 @@ export function SettingsClient({
             onChange={(e) => set("max_daily_orders", Number(e.target.value))}
           />
         </Field>
-        <Field label="Default cutoff (HH:MM, Central Time)">
+        <Field label="Orders close at (HH:MM)">
           <Input
             value={form.default_cutoff}
             onChange={(e) => set("default_cutoff", e.target.value)}

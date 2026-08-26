@@ -91,7 +91,7 @@ export function RunStatusCard({
         </p>
       ) : open ? (
         <p className="mt-4 text-sm text-neutral-300">
-          {countdown} left to order · Central Time
+          {countdown} left to order
         </p>
       ) : (
         <p className="mt-4 text-sm text-neutral-300">

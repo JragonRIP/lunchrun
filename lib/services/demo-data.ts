@@ -9,7 +9,8 @@ import {
   recalculateOrderTotals,
   recordSubstitution,
 } from "@/lib/demo/store";
-import { isOrderingOpen } from "@/lib/ordering";
+import { isOrderingOpen, isSessionAcceptingOrders } from "@/lib/ordering";
+import { msUntilCutoff } from "@/lib/time";
 import { shoppingItemKey } from "@/lib/order-money";
 import type {
   AppSettings,
@@ -35,6 +36,7 @@ export async function getCatalog(): Promise<{
   settings: AppSettings;
   store: Store | null;
   orderingOpen: boolean;
+  sessionAccepting: boolean;
   orderCount: number;
   demo: boolean;
 }> {
@@ -54,7 +56,13 @@ export async function getCatalog(): Promise<{
     state.stores.find((s) => s.is_default) ??
     null;
 
-  const orderingOpen = isOrderingOpen(state.session, state.settings, state.orders.length);
+  const orderCount = state.orders.filter((o) => o.status !== "cancelled").length;
+  const sessionAccepting = isSessionAcceptingOrders(
+    state.session,
+    state.settings,
+    orderCount,
+  );
+  const orderingOpen = isOrderingOpen(state.session, state.settings, orderCount);
 
   return {
     products,
@@ -64,7 +72,8 @@ export async function getCatalog(): Promise<{
     settings: state.settings,
     store,
     orderingOpen,
-    orderCount: state.orders.filter((o) => o.status !== "cancelled").length,
+    sessionAccepting,
+    orderCount,
     demo: isDemoMode(),
   };
 }
@@ -362,7 +371,12 @@ export async function saveSettings(settings: AppSettings) {
   }
   state.session.cutoff_time = settings.default_cutoff;
   state.session.max_orders = settings.max_daily_orders;
-  if (settings.test_mode) {
+  const cutoffStillOpen = msUntilCutoff(settings.default_cutoff) > 0;
+  if (
+    (settings.test_mode || cutoffStillOpen) &&
+    state.session.status !== "cancelled" &&
+    state.session.status !== "completed"
+  ) {
     state.session.status = "open";
   }
   return state.settings;

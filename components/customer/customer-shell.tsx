@@ -10,16 +10,16 @@ import type { AppSettings } from "@/lib/types";
 export function CustomerShell({
   children,
   settings,
-  orderingOpen,
+  sessionAccepting,
   cutoffTime,
 }: {
   children: React.ReactNode;
   settings: AppSettings;
-  orderingOpen: boolean;
+  sessionAccepting: boolean;
   cutoffTime: string;
 }) {
   const liveOpen = useLiveOrderingOpen(
-    orderingOpen,
+    sessionAccepting,
     cutoffTime,
     settings.test_mode,
   );
@@ -30,7 +30,7 @@ export function CustomerShell({
       <main className="flex-1 px-4 py-5 pb-36">{children}</main>
       <CartBar
         settings={settings}
-        orderingOpen={orderingOpen}
+        sessionAccepting={sessionAccepting}
         cutoffTime={cutoffTime}
       />
       <OrderFlowSheet settings={settings} orderingOpen={liveOpen} />

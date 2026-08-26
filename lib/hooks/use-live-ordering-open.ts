@@ -4,15 +4,17 @@ import { useEffect, useState } from "react";
 import { msUntilCutoff } from "@/lib/time";
 
 /**
- * Server `orderingOpen` plus a live Central Time countdown so the UI closes
- * at cutoff without waiting for a refresh.
+ * Live open/closed from session eligibility + cutoff countdown.
+ * Extending the cutoff reopens ordering as soon as the new time is ahead of now.
  */
 export function useLiveOrderingOpen(
-  orderingOpen: boolean,
+  sessionAccepting: boolean,
   cutoffTime: string,
   testMode = false,
 ): boolean {
-  const [withinCutoff, setWithinCutoff] = useState(true);
+  const [withinCutoff, setWithinCutoff] = useState(
+    () => testMode || msUntilCutoff(cutoffTime) > 0,
+  );
 
   useEffect(() => {
     if (testMode) {
@@ -26,5 +28,5 @@ export function useLiveOrderingOpen(
   }, [cutoffTime, testMode]);
 
   if (testMode) return true;
-  return orderingOpen && withinCutoff;
+  return sessionAccepting && withinCutoff;
 }

@@ -30,7 +30,7 @@ export function CatalogClient({
   session,
   store,
   settings,
-  orderingOpen,
+  sessionAccepting,
   orderCount,
   demo,
 }: {
@@ -39,12 +39,12 @@ export function CatalogClient({
   session: LunchRunSession;
   store: Store | null;
   settings: AppSettings;
-  orderingOpen: boolean;
+  sessionAccepting: boolean;
   orderCount: number;
   demo: boolean;
 }) {
   const liveOpen = useLiveOrderingOpen(
-    orderingOpen,
+    sessionAccepting,
     session.cutoff_time,
     settings.test_mode,
   );
