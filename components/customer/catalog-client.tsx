@@ -20,6 +20,7 @@ import type {
 } from "@/lib/types";
 import { RunStatusCard } from "@/components/customer/run-status-card";
 import { HowItWorks } from "@/components/customer/how-it-works";
+import { useLiveOrderingOpen } from "@/lib/hooks/use-live-ordering-open";
 
 type SortKey = "popular" | "price" | "drinks" | "snacks" | "updated";
 
@@ -42,6 +43,11 @@ export function CatalogClient({
   orderCount: number;
   demo: boolean;
 }) {
+  const liveOpen = useLiveOrderingOpen(
+    orderingOpen,
+    session.cutoff_time,
+    settings.test_mode,
+  );
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [sort, setSort] = useState<SortKey>("popular");
@@ -101,7 +107,7 @@ export function CatalogClient({
       <RunStatusCard
         session={session}
         store={store}
-        orderingOpen={orderingOpen}
+        orderingOpen={liveOpen}
         orderCount={orderCount}
         maxOrders={session.max_orders || settings.max_daily_orders}
         testMode={settings.test_mode}
@@ -164,7 +170,7 @@ export function CatalogClient({
               key={product.id}
               product={product}
               onAdd={(p) => {
-                if (!orderingOpen) {
+                if (!liveOpen) {
                   toast.error("Today's ordering has closed.");
                   return;
                 }
@@ -180,7 +186,7 @@ export function CatalogClient({
           variant="outline"
           className="w-full"
           onClick={() => {
-            if (!orderingOpen) {
+            if (!liveOpen) {
               toast.error("Today's ordering has closed.");
               return;
             }
@@ -195,12 +201,12 @@ export function CatalogClient({
         product={selected}
         open={!!selected}
         onClose={() => setSelected(null)}
-        orderingOpen={orderingOpen}
+        orderingOpen={liveOpen}
       />
       <CustomItemModal
         open={customOpen}
         onClose={() => setCustomOpen(false)}
-        orderingOpen={orderingOpen}
+        orderingOpen={liveOpen}
       />
     </div>
   );

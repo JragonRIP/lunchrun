@@ -116,10 +116,11 @@ export function SettingsClient({
             onChange={(e) => set("max_daily_orders", Number(e.target.value))}
           />
         </Field>
-        <Field label="Default cutoff (HH:MM)">
+        <Field label="Default cutoff (HH:MM, Central Time)">
           <Input
             value={form.default_cutoff}
             onChange={(e) => set("default_cutoff", e.target.value)}
+            placeholder="11:30"
           />
         </Field>
         <Field label="Delivery window">

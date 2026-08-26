@@ -2,6 +2,7 @@ import { effectiveServiceFee } from "@/lib/constants";
 import { isOrderingOpen } from "@/lib/ordering";
 import { recalculateOrderTotals, shoppingItemKey } from "@/lib/order-money";
 import { createServiceClient } from "@/lib/supabase/admin";
+import { todayInAppTz } from "@/lib/time";
 import type {
   AppSettings,
   Category,
@@ -45,7 +46,7 @@ function numOrNull(v: unknown): number | null {
 }
 
 function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayInAppTz();
 }
 
 function mapStore(row: Record<string, unknown>): Store {

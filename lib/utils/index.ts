@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { PriceFreshness, SubstitutionPreference } from "@/lib/types";
+import { parseTimeToTodayInAppTz } from "@/lib/time";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -80,10 +81,8 @@ export function generateTrackingToken(): string {
 }
 
 export function parseTimeToToday(time: string): Date {
-  const [h, m] = time.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h ?? 11, m ?? 30, 0, 0);
-  return d;
+  // Always Central Time so Vercel (UTC) and student phones agree on cutoff.
+  return parseTimeToTodayInAppTz(time);
 }
 
 export function formatCountdown(ms: number): string {

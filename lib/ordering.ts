@@ -1,7 +1,7 @@
 import type { AppSettings, LunchRunSession } from "@/lib/types";
-import { parseTimeToToday } from "@/lib/utils";
+import { parseTimeToTodayInAppTz } from "@/lib/time";
 
-/** Whether students can place orders right now. */
+/** Whether students can place orders right now (Central Time cutoff). */
 export function isOrderingOpen(
   session: LunchRunSession,
   settings: AppSettings,
@@ -12,6 +12,8 @@ export function isOrderingOpen(
   if (session.status === "cancelled" || session.status === "completed") return false;
   if (session.status !== "open" && session.status !== "scheduled") return false;
   if (orderCount >= (session.max_orders || settings.max_daily_orders)) return false;
-  const cutoff = parseTimeToToday(session.cutoff_time || settings.default_cutoff);
+  const cutoff = parseTimeToTodayInAppTz(
+    session.cutoff_time || settings.default_cutoff,
+  );
   return Date.now() < cutoff.getTime();
 }

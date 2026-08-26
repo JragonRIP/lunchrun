@@ -12,6 +12,7 @@ export default async function CustomerLayout({
     <CustomerShell
       settings={catalog.settings}
       orderingOpen={catalog.orderingOpen}
+      cutoffTime={catalog.session.cutoff_time}
     >
       {children}
     </CustomerShell>
