@@ -12,6 +12,11 @@ export function isProductionDataEnabled(): boolean {
   );
 }
 
+/** Inverse of production data — in-memory demo when service role is missing. */
+export function isDemoMode(): boolean {
+  return !isProductionDataEnabled();
+}
+
 export function getSiteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }

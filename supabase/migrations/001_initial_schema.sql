@@ -253,9 +253,8 @@ create policy "Public read active products" on public.products for select using 
 create policy "Public read settings" on public.settings for select using (true);
 create policy "Public read sessions" on public.lunch_run_sessions for select using (true);
 
--- Orders: insert allowed for anon (validated in app); select by token via RPC preferred
-create policy "Anyone can create orders" on public.orders for insert with check (true);
-create policy "Anyone can create order items" on public.order_items for insert with check (true);
+-- Orders: created via service role / server actions only (no anon insert)
+-- Select by tracking token uses get_order_by_token() security definer RPC
 
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path = public as $$

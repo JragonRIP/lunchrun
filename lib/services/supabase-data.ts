@@ -1,5 +1,6 @@
 import { effectiveServiceFee } from "@/lib/constants";
 import { isOrderingOpen } from "@/lib/ordering";
+import { recalculateOrderTotals, shoppingItemKey } from "@/lib/order-money";
 import { createServiceClient } from "@/lib/supabase/admin";
 import type {
   AppSettings,
@@ -247,40 +248,6 @@ function mapImportLog(row: Record<string, unknown>): PriceImportLog {
   };
 }
 
-function recalculateOrderTotals(order: Order, settings: AppSettings): Order {
-  const items = order.items ?? [];
-  const purchased = items.filter(
-    (i) => i.status === "found" || i.status === "substituted",
-  );
-
-  let merchandise = 0;
-  for (const item of purchased) {
-    const unit =
-      item.status === "substituted"
-        ? (item.replacement_price ?? item.actual_price ?? 0)
-        : (item.actual_price ?? 0);
-    merchandise += unit * item.quantity;
-  }
-  merchandise = roundMoney(merchandise);
-
-  let tax = 0;
-  if (settings.tax_mode === "simple" && settings.tax_rate > 0) {
-    tax = roundMoney(merchandise * settings.tax_rate);
-  } else {
-    tax = roundMoney(items.reduce((sum, i) => sum + i.tax_amount, 0));
-  }
-
-  const finalTotal = roundMoney(
-    merchandise + tax + order.service_fee + order.tip_amount,
-  );
-  order.merchandise_actual = merchandise;
-  order.tax_amount = tax;
-  order.final_total = finalTotal;
-  order.change_owed = roundMoney(Math.max(0, order.amount_paid - finalTotal));
-  order.updated_at = new Date().toISOString();
-  return order;
-}
-
 async function persistOrderTotals(db: Db, order: Order) {
   const { error } = await db
     .from("orders")
@@ -380,16 +347,16 @@ function buildShoppingListFrom(
   products: Product[],
   categories: Category[],
 ): ShoppingListItem[] {
-  const list = orders.filter((o) => o.status !== "cancelled");
+  const list = orders.filter((o) =>
+    ["received", "shopping_soon", "shopping"].includes(o.status),
+  );
   const map = new Map<string, ShoppingListItem>();
   const otherCat = categories.find((c) => c.slug === "other");
 
   for (const order of list) {
     for (const item of order.items ?? []) {
       if (item.status === "skipped" || item.status === "unavailable") continue;
-      const key =
-        item.product_id ??
-        normalizeProductKey(item.brand, item.product_name, item.size);
+      const key = shoppingItemKey(item);
       const product = item.product_id
         ? products.find((p) => p.id === item.product_id)
         : undefined;
@@ -462,7 +429,7 @@ export async function getCatalog(): Promise<{
     { count, error: countErr },
   ] = await Promise.all([
     db.from("categories").select("*").eq("active", true).order("sort_order"),
-    db.from("products").select("*").eq("active", true).eq("archived", false),
+    db.from("products").select("*").eq("active", true).eq("archived", false).eq("available", true),
     db.from("stores").select("*").eq("active", true),
     db
       .from("orders")
@@ -547,6 +514,13 @@ export async function submitOrder(input: CheckoutInput): Promise<
 
   if (!catalog.orderingOpen) {
     return { ok: false, error: "Today's Lunch Run ordering has closed." };
+  }
+
+  if (
+    !catalog.settings.allow_custom_requests &&
+    input.items.some((i) => i.isCustom)
+  ) {
+    return { ok: false, error: "Custom item requests are turned off." };
   }
 
   if (
@@ -757,8 +731,24 @@ export async function getAdminDashboard() {
 
 export async function getOrders(filter?: string, search?: string): Promise<Order[]> {
   const db = createServiceClient();
+  const settings = await fetchSettings(db);
   const session = await getOrCreateTodaySession(db);
   let orders = await fetchSessionOrders(db, session.id);
+
+  // Heal totals so prepaid-before-shopping never leaves a fee-only final_total.
+  for (const order of orders) {
+    const prevFinal = order.final_total;
+    const prevChange = order.change_owed;
+    const prevMerch = order.merchandise_actual;
+    recalculateOrderTotals(order, settings);
+    if (
+      order.final_total !== prevFinal ||
+      order.change_owed !== prevChange ||
+      order.merchandise_actual !== prevMerch
+    ) {
+      await persistOrderTotals(db, order);
+    }
+  }
 
   if (search) {
     const q = search.toLowerCase();
@@ -970,6 +960,7 @@ export async function updateOrderPayment(
 
 export async function updateOrderStatus(orderId: string, status: Order["status"]) {
   const db = createServiceClient();
+  const settings = await fetchSettings(db);
   const deliveredAt = status === "delivered" ? new Date().toISOString() : undefined;
   const updatedAt = new Date().toISOString();
   const patch: Record<string, unknown> = {
@@ -986,7 +977,13 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  return mapOrder(data as Record<string, unknown>);
+
+  const order = mapOrder(data as Record<string, unknown>);
+  order.status = status;
+  if (deliveredAt) order.delivered_at = deliveredAt;
+  recalculateOrderTotals(order, settings);
+  await persistOrderTotals(db, order);
+  return order;
 }
 
 export async function markDelivered(orderId: string) {
@@ -1445,15 +1442,34 @@ export async function allocateReceiptTax(totalTax: number) {
           return s + unit * i.quantity;
         }, 0) ?? 0;
     const share = roundMoney((merch / merchandiseTotal) * totalTax);
-    order.tax_amount = share;
-    if (order.items) {
-      for (const item of order.items) {
-        item.tax_amount = 0;
+    if (order.items && merch > 0) {
+      let assigned = 0;
+      const purch = order.items.filter(
+        (i) => i.status === "found" || i.status === "substituted",
+      );
+      for (let idx = 0; idx < purch.length; idx++) {
+        const item = purch[idx];
+        const unit =
+          item.status === "substituted"
+            ? (item.replacement_price ?? item.actual_price ?? 0)
+            : (item.actual_price ?? 0);
+        const line = unit * item.quantity;
+        const itemTax =
+          idx === purch.length - 1
+            ? roundMoney(share - assigned)
+            : roundMoney((line / merch) * share);
+        assigned = roundMoney(assigned + itemTax);
+        item.tax_amount = itemTax;
+        await db
+          .from("order_items")
+          .update({ tax_amount: itemTax })
+          .eq("id", item.id);
       }
-      await db
-        .from("order_items")
-        .update({ tax_amount: 0 })
-        .eq("order_id", order.id);
+      for (const item of order.items) {
+        if (item.status !== "found" && item.status !== "substituted") {
+          item.tax_amount = 0;
+        }
+      }
     }
     recalculateOrderTotals(order, receiptSettings);
     await persistOrderTotals(db, order);
@@ -1474,6 +1490,7 @@ export async function isAdminAuthenticated() {
 
 export async function togglePickedUp(productKey: string, picked: boolean) {
   const db = createServiceClient();
+  const settings = await fetchSettings(db);
   const session = await getOrCreateTodaySession(db);
   const [orders, { data: productRows }, { data: categoryRows }] = await Promise.all([
     fetchSessionOrders(db, session.id),
@@ -1488,17 +1505,34 @@ export async function togglePickedUp(productKey: string, picked: boolean) {
   const group = list.find((i) => i.productKey === productKey);
   if (!group) return;
 
+  const touched = new Set<string>();
   for (const c of group.customers) {
     const order = orders.find((o) => o.id === c.orderId);
     const item = order?.items?.find((i) => i.id === c.orderItemId);
-    if (!item) continue;
-    item.picked_up = picked;
+    if (!item || !order) continue;
+
     const patch: Record<string, unknown> = { picked_up: picked };
+    item.picked_up = picked;
+
     if (picked && item.actual_price != null && item.status === "pending") {
       item.status = "found";
       patch.status = "found";
+    } else if (!picked && item.status === "found") {
+      item.status = "pending";
+      item.actual_price = null;
+      patch.status = "pending";
+      patch.actual_price = null;
     }
+
     await db.from("order_items").update(patch).eq("id", item.id);
+    touched.add(order.id);
+  }
+
+  for (const orderId of touched) {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) continue;
+    recalculateOrderTotals(order, settings);
+    await persistOrderTotals(db, order);
   }
 }
 
@@ -1518,6 +1552,16 @@ export async function finishShopping() {
   const orders = await fetchSessionOrders(db, session.id);
   for (const order of orders) {
     if (["received", "shopping_soon", "shopping"].includes(order.status)) {
+      for (const item of order.items ?? []) {
+        if (item.status === "pending") {
+          item.status = "unavailable";
+          item.picked_up = false;
+          await db
+            .from("order_items")
+            .update({ status: "unavailable", picked_up: false })
+            .eq("id", item.id);
+        }
+      }
       order.status = "purchased";
       recalculateOrderTotals(order, settings);
       await db

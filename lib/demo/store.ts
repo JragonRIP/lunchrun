@@ -9,6 +9,8 @@ import {
   DEMO_SETTINGS,
   DEMO_STORES,
 } from "@/lib/demo/seed";
+import { effectiveServiceFee } from "@/lib/constants";
+import { recalculateOrderTotals as recalcShared, shoppingItemKey } from "@/lib/order-money";
 import type {
   AppSettings,
   Category,
@@ -25,10 +27,8 @@ import type {
 import {
   generateOrderCode,
   generateTrackingToken,
-  normalizeProductKey,
   roundMoney,
 } from "@/lib/utils";
-import { effectiveServiceFee } from "@/lib/constants";
 
 export interface DemoState {
   stores: Store[];
@@ -72,6 +72,8 @@ function createInitialState(): DemoState {
   };
 }
 
+import { isDemoMode } from "@/lib/supabase/config";
+
 export function getDemoState(): DemoState {
   if (!globalThis.__lunchRunDemo) {
     globalThis.__lunchRunDemo = createInitialState();
@@ -83,13 +85,7 @@ export function resetDemoState() {
   globalThis.__lunchRunDemo = createInitialState();
 }
 
-export function isDemoMode(): boolean {
-  return !(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
-}
+export { isDemoMode };
 
 export function getActiveServiceFee(state = getDemoState()): number {
   return effectiveServiceFee(state.settings);
@@ -97,15 +93,17 @@ export function getActiveServiceFee(state = getDemoState()): number {
 
 export function buildShoppingList(orders?: Order[]): ShoppingListItem[] {
   const state = getDemoState();
-  const list = orders ?? state.orders.filter((o) => o.status !== "cancelled");
+  const list =
+    orders ??
+    state.orders.filter((o) =>
+      ["received", "shopping_soon", "shopping"].includes(o.status),
+    );
   const map = new Map<string, ShoppingListItem>();
 
   for (const order of list) {
     for (const item of order.items ?? []) {
       if (item.status === "skipped" || item.status === "unavailable") continue;
-      const key =
-        item.product_id ??
-        normalizeProductKey(item.brand, item.product_name, item.size);
+      const key = shoppingItemKey(item);
       const product = item.product_id
         ? state.products.find((p) => p.id === item.product_id)
         : undefined;
@@ -252,35 +250,7 @@ export function createDemoOrder(input: {
 export function recalculateOrderTotals(order: Order, settings?: AppSettings) {
   const state = getDemoState();
   const s = settings ?? state.settings;
-  const items = order.items ?? [];
-  const purchased = items.filter(
-    (i) => i.status === "found" || i.status === "substituted",
-  );
-
-  let merchandise = 0;
-  for (const item of purchased) {
-    const unit =
-      item.status === "substituted"
-        ? (item.replacement_price ?? item.actual_price ?? 0)
-        : (item.actual_price ?? 0);
-    merchandise += unit * item.quantity;
-  }
-  merchandise = roundMoney(merchandise);
-
-  let tax = 0;
-  if (s.tax_mode === "simple" && s.tax_rate > 0) {
-    tax = roundMoney(merchandise * s.tax_rate);
-  } else {
-    tax = roundMoney(items.reduce((sum, i) => sum + i.tax_amount, 0));
-  }
-
-  const finalTotal = roundMoney(merchandise + tax + order.service_fee + order.tip_amount);
-  order.merchandise_actual = merchandise;
-  order.tax_amount = tax;
-  order.final_total = finalTotal;
-  order.change_owed = roundMoney(Math.max(0, order.amount_paid - finalTotal));
-  order.updated_at = new Date().toISOString();
-  return order;
+  return recalcShared(order, s);
 }
 
 export function distributeShelfPrice(

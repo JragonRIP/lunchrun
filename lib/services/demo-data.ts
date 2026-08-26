@@ -10,6 +10,7 @@ import {
   recordSubstitution,
 } from "@/lib/demo/store";
 import { isOrderingOpen } from "@/lib/ordering";
+import { shoppingItemKey } from "@/lib/order-money";
 import type {
   AppSettings,
   Category,
@@ -21,7 +22,7 @@ import type {
   ShoppingListItem,
   Store,
 } from "@/lib/types";
-import { normalizeProductKey, roundMoney, sanitizeText } from "@/lib/utils";
+import { roundMoney, sanitizeText, normalizeProductKey } from "@/lib/utils";
 import type { CheckoutInput } from "@/lib/validation/schemas";
 
 export { isDemoMode, isOrderingOpen };
@@ -40,7 +41,7 @@ export async function getCatalog(): Promise<{
   const state = getDemoState();
   const categories = state.categories.filter((c) => c.active).sort((a, b) => a.sort_order - b.sort_order);
   const products: ProductWithCategory[] = state.products
-    .filter((p) => p.active && !p.archived)
+    .filter((p) => p.active && !p.archived && p.available)
     .map((p) => ({
       ...p,
       category: categories.find((c) => c.id === p.category_id),
@@ -97,6 +98,13 @@ export async function submitOrder(input: CheckoutInput): Promise<
 
   if (!catalog.orderingOpen) {
     return { ok: false, error: "Today's Lunch Run ordering has closed." };
+  }
+
+  if (
+    !catalog.settings.allow_custom_requests &&
+    input.items.some((i) => i.isCustom)
+  ) {
+    return { ok: false, error: "Custom item requests are turned off." };
   }
 
   if (
@@ -229,6 +237,9 @@ export async function getAdminDashboard() {
 export async function getOrders(filter?: string, search?: string): Promise<Order[]> {
   const state = getDemoState();
   let orders = [...state.orders];
+  for (const order of orders) {
+    recalculateOrderTotals(order);
+  }
 
   if (search) {
     const q = search.toLowerCase();
@@ -314,7 +325,7 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
   if (status === "delivered") {
     order.delivered_at = new Date().toISOString();
   }
-  order.updated_at = new Date().toISOString();
+  recalculateOrderTotals(order);
   return order;
 }
 
@@ -595,7 +606,9 @@ export async function updateCategoryOrder(orderedIds: string[]) {
 
 export async function allocateReceiptTax(totalTax: number) {
   const state = getDemoState();
-  const orders = state.orders.filter((o) => o.status !== "cancelled");
+  const orders = state.orders.filter(
+    (o) => o.session_id === state.session.id && o.status !== "cancelled",
+  );
   const merchandiseTotal = orders.reduce((sum, o) => {
     const m =
       o.items
@@ -612,6 +625,8 @@ export async function allocateReceiptTax(totalTax: number) {
 
   if (merchandiseTotal <= 0) return;
 
+  const receiptSettings = { ...state.settings, tax_mode: "receipt" as const };
+
   for (const order of orders) {
     const merch =
       order.items
@@ -624,13 +639,32 @@ export async function allocateReceiptTax(totalTax: number) {
           return s + unit * i.quantity;
         }, 0) ?? 0;
     const share = roundMoney((merch / merchandiseTotal) * totalTax);
-    order.tax_amount = share;
-    if (order.items) {
+    if (order.items && merch > 0) {
+      let assigned = 0;
+      const purch = order.items.filter(
+        (i) => i.status === "found" || i.status === "substituted",
+      );
+      for (let idx = 0; idx < purch.length; idx++) {
+        const item = purch[idx];
+        const unit =
+          item.status === "substituted"
+            ? (item.replacement_price ?? item.actual_price ?? 0)
+            : (item.actual_price ?? 0);
+        const line = unit * item.quantity;
+        const itemTax =
+          idx === purch.length - 1
+            ? roundMoney(share - assigned)
+            : roundMoney((line / merch) * share);
+        assigned = roundMoney(assigned + itemTax);
+        item.tax_amount = itemTax;
+      }
       for (const item of order.items) {
-        item.tax_amount = 0;
+        if (item.status !== "found" && item.status !== "substituted") {
+          item.tax_amount = 0;
+        }
       }
     }
-    recalculateOrderTotals(order, { ...state.settings, tax_mode: "receipt" });
+    recalculateOrderTotals(order, receiptSettings);
   }
 }
 
@@ -666,12 +700,15 @@ export async function togglePickedUp(productKey: string, picked: boolean) {
   for (const c of group.customers) {
     const order = state.orders.find((o) => o.id === c.orderId);
     const item = order?.items?.find((i) => i.id === c.orderItemId);
-    if (item) {
-      item.picked_up = picked;
-      if (picked && item.actual_price != null && item.status === "pending") {
-        item.status = "found";
-      }
+    if (!item || !order) continue;
+    item.picked_up = picked;
+    if (picked && item.actual_price != null && item.status === "pending") {
+      item.status = "found";
+    } else if (!picked && item.status === "found") {
+      item.status = "pending";
+      item.actual_price = null;
     }
+    recalculateOrderTotals(order);
   }
 }
 
@@ -679,7 +716,16 @@ export async function finishShopping() {
   const state = getDemoState();
   state.session.status = "returning";
   for (const order of state.orders) {
-    if (["received", "shopping_soon", "shopping"].includes(order.status)) {
+    if (
+      order.session_id === state.session.id &&
+      ["received", "shopping_soon", "shopping"].includes(order.status)
+    ) {
+      for (const item of order.items ?? []) {
+        if (item.status === "pending") {
+          item.status = "unavailable";
+          item.picked_up = false;
+        }
+      }
       order.status = "purchased";
       recalculateOrderTotals(order);
     }

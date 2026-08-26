@@ -148,12 +148,12 @@ export function CartClient({
           strong
         />
         <div className="mt-4 rounded-2xl bg-lr-yellow/30 p-4">
-          <p className="text-sm font-bold">Maximum authorized total</p>
+          <p className="text-sm font-bold">Cash to give operator</p>
           <p className="text-3xl font-black">{formatMoney(maxAuth)}</p>
           <p className="mt-2 text-xs text-neutral-600">
-            You pay the actual store price plus the {formatMoney(fee)} Lunch Run
-            fee. You will never be charged above your authorized maximum without
-            approval.
+            Hand over this amount before shopping (max snack prices +{" "}
+            {formatMoney(fee)} fee). You get change at delivery if snacks cost
+            less.
           </p>
         </div>
       </div>

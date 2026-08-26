@@ -211,8 +211,12 @@ export function OrderFlowSheet({
                   strong
                 />
                 <div className="mt-3 rounded-xl bg-lr-yellow/40 p-3">
-                  <p className="text-xs font-bold">Maximum authorized</p>
+                  <p className="text-xs font-bold">Cash to give operator</p>
                   <p className="text-2xl font-black">{formatMoney(maxAuth)}</p>
+                  <p className="mt-1 text-xs text-neutral-600">
+                    Max snack prices + {formatMoney(fee)} fee. Change returned
+                    at delivery.
+                  </p>
                 </div>
               </div>
             </div>
@@ -221,7 +225,10 @@ export function OrderFlowSheet({
               <div className="rounded-2xl border border-lr-yellow/40 bg-lr-yellow/20 px-4 py-3 text-sm">
                 <p className="font-black">Cash prepay only</p>
                 <p className="mt-0.5 text-neutral-600">
-                  Pay cash when you get your snacks. No cards or apps.
+                  Hand the operator{" "}
+                  <strong>{formatMoney(maxAuth)}</strong> before they shop.
+                  That covers your max prices + {formatMoney(fee)} fee. You get
+                  change at delivery if the snacks cost less.
                 </p>
               </div>
 
@@ -279,9 +286,10 @@ export function OrderFlowSheet({
               </div>
 
               <div className="rounded-2xl bg-neutral-50 p-4 text-sm leading-relaxed text-neutral-600">
-                Prices are estimates. You pay the actual store price +{" "}
-                {formatMoney(fee)} fee. Never above your max of{" "}
-                <strong>{formatMoney(maxAuth)}</strong> without approval.
+                Prices are estimates. Give{" "}
+                <strong>{formatMoney(maxAuth)}</strong> up front (never charged
+                above that without approval). Final bill = actual store prices +{" "}
+                {formatMoney(fee)} fee.
               </div>
             </div>
           )}
@@ -347,7 +355,9 @@ export function OrderFlowSheet({
                     saveOrder(toSavedOrder(result.order));
                     clear();
                     close();
-                    toast.success("Order placed!");
+                    toast.success(
+                      `Order placed — give ${formatMoney(result.order.max_authorized_total)} cash now`,
+                    );
                     router.push(`/confirmed?token=${result.order.tracking_token}`);
                   });
                 }}

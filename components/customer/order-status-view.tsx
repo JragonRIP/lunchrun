@@ -59,6 +59,16 @@ export function OrderStatusView({ order }: { order: Order }) {
         <h2 className="font-black">Totals</h2>
         <dl className="mt-3 space-y-2 text-sm">
           <div className="flex justify-between">
+            <dt className="text-neutral-500">Cash to give / prepaid</dt>
+            <dd className="text-lg font-black">
+              {formatMoney(
+                order.amount_paid > 0
+                  ? order.amount_paid
+                  : order.max_authorized_total,
+              )}
+            </dd>
+          </div>
+          <div className="flex justify-between">
             <dt className="text-neutral-500">Estimated</dt>
             <dd className="font-semibold">
               {formatMoneyRange(
@@ -68,21 +78,28 @@ export function OrderStatusView({ order }: { order: Order }) {
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-neutral-500">Final total</dt>
+            <dt className="text-neutral-500">Actual snacks + fee</dt>
             <dd className="text-lg font-black">
               {order.final_total != null
                 ? formatMoney(order.final_total)
-                : "Pending"}
+                : "Pending shopping"}
             </dd>
           </div>
+          {order.merchandise_actual != null ? (
+            <div className="flex justify-between text-neutral-500">
+              <dt>Snacks</dt>
+              <dd className="font-semibold">
+                {formatMoney(order.merchandise_actual)} +{" "}
+                {formatMoney(order.service_fee)} fee
+              </dd>
+            </div>
+          ) : null}
           <div className="flex justify-between">
-            <dt className="text-neutral-500">Paid</dt>
-            <dd className="font-semibold">{formatMoney(order.amount_paid)}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-neutral-500">Change owed</dt>
+            <dt className="text-neutral-500">Change back to you</dt>
             <dd className="font-black text-emerald-600">
-              {formatMoney(order.change_owed)}
+              {order.final_total != null && order.amount_paid > 0
+                ? formatMoney(order.change_owed)
+                : "After delivery"}
             </dd>
           </div>
           <div className="flex justify-between">

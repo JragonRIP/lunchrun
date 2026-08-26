@@ -27,7 +27,12 @@ function LoginForm() {
             return;
           }
           toast.success("Welcome back");
-          router.push(params.get("next") || "/admin");
+          const next = params.get("next");
+          const safeNext =
+            next && next.startsWith("/admin") && !next.startsWith("//")
+              ? next
+              : "/admin";
+          router.push(safeNext);
           router.refresh();
         });
       }}

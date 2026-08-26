@@ -81,7 +81,11 @@ export function ShopClient({ items }: { items: ShoppingListItem[] }) {
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                await finishShoppingAction();
+                const result = await finishShoppingAction();
+                if (!result.ok) {
+                  toast.error(result.error || "Could not finish shopping");
+                  return;
+                }
                 toast.success("Shopping finished");
                 router.push("/admin/deliver");
                 router.refresh();
@@ -210,10 +214,24 @@ export function ShopClient({ items }: { items: ShoppingListItem[] }) {
                       checked={item.pickedUp}
                       onChange={(e) =>
                         startTransition(async () => {
-                          await togglePickedAction(
-                            item.productKey,
-                            e.target.checked,
-                          );
+                          const checked = e.target.checked;
+                          if (checked && priceVal && !Number.isNaN(Number(priceVal))) {
+                            const result = await setShelfPriceAction(
+                              item.productKey,
+                              Number(priceVal),
+                            );
+                            if (!result.ok) {
+                              toast.error(result.error);
+                              return;
+                            }
+                            if (result.warnings.length) {
+                              result.warnings.forEach((w: string) =>
+                                toast.warning(w),
+                              );
+                            }
+                          } else {
+                            await togglePickedAction(item.productKey, checked);
+                          }
                           router.refresh();
                         })
                       }

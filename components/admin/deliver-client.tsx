@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { deliverAction, notFoundAction, paymentAction } from "@/lib/actions";
+import { changeDue, prepayAmount } from "@/lib/order-money";
 import type { Order } from "@/lib/types";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney, roundMoney } from "@/lib/utils";
 
 export function DeliverClient({ orders }: { orders: Order[] }) {
   const router = useRouter();
@@ -28,16 +29,36 @@ export function DeliverClient({ orders }: { orders: Order[] }) {
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-black sm:text-3xl">Deliveries & Change</h1>
-        <p className="text-sm text-neutral-500">Large cards for hallway delivery</p>
+        <p className="text-sm text-neutral-500">
+          Change = cash collected − actual snacks − Lunch Run fee
+        </p>
       </div>
 
       <div className="space-y-4">
         {active.map((order) => {
-          const paid =
+          const collectTarget = prepayAmount(order);
+          const paidDefault =
+            order.amount_paid > 0
+              ? order.amount_paid
+              : order.final_total != null
+                ? order.final_total
+                : collectTarget;
+          const paidStr =
             paidInputs[order.id] ??
-            (order.amount_paid ? String(order.amount_paid) : "");
-          const finalTotal = order.final_total ?? order.max_authorized_total;
-          const change = Math.max(0, Number(paid || 0) - finalTotal);
+            (paidDefault ? String(paidDefault) : "");
+          const paidNum = Number(paidStr);
+          const merch = order.merchandise_actual;
+          const fee = order.service_fee;
+          const actualDue = order.final_total;
+          const paidValid = Number.isFinite(paidNum) && paidNum >= 0;
+          const change =
+            actualDue != null && paidValid
+              ? roundMoney(Math.max(0, paidNum - actualDue))
+              : 0;
+          const ready = actualDue != null;
+          const underpaid =
+            ready && (!paidValid || paidNum + 0.001 < (actualDue ?? 0));
+          const invalidCash = ready && !paidValid;
 
           return (
             <article
@@ -56,27 +77,58 @@ export function DeliverClient({ orders }: { orders: Order[] }) {
                 <Badge
                   tone={order.payment_status === "paid" ? "success" : "warning"}
                 >
-                  {order.payment_status}
+                  {order.payment_status === "paid" ? "prepaid" : order.payment_status}
                 </Badge>
+              </div>
+
+              <div className="mt-4 rounded-2xl bg-neutral-50 p-4 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="text-neutral-500">Snacks (actual)</span>
+                  <span className="font-bold">
+                    {merch != null ? formatMoney(merch) : "—"}
+                  </span>
+                </div>
+                <div className="mt-1 flex justify-between gap-3">
+                  <span className="text-neutral-500">Lunch Run fee</span>
+                  <span className="font-bold">{formatMoney(fee)}</span>
+                </div>
+                {order.tax_amount > 0 ? (
+                  <div className="mt-1 flex justify-between gap-3">
+                    <span className="text-neutral-500">Tax</span>
+                    <span className="font-bold">{formatMoney(order.tax_amount)}</span>
+                  </div>
+                ) : null}
+                <div className="mt-2 flex justify-between gap-3 border-t border-neutral-200 pt-2">
+                  <span className="font-black">Actual total</span>
+                  <span className="text-xl font-black">
+                    {ready ? formatMoney(actualDue) : "Finish shopping first"}
+                  </span>
+                </div>
+                <div className="mt-1 flex justify-between gap-3 text-neutral-500">
+                  <span>Should have prepaid</span>
+                  <span className="font-semibold">{formatMoney(collectTarget)}</span>
+                </div>
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
                 <div className="rounded-2xl bg-neutral-50 p-3">
                   <p className="text-xs font-bold uppercase text-neutral-400">
-                    Total
+                    Actual due
                   </p>
-                  <p className="text-3xl font-black">{formatMoney(finalTotal)}</p>
+                  <p className="text-3xl font-black">
+                    {ready ? formatMoney(actualDue) : "—"}
+                  </p>
                 </div>
                 <div className="rounded-2xl bg-neutral-50 p-3">
                   <p className="text-xs font-bold uppercase text-neutral-400">
-                    Paid
+                    Cash collected
                   </p>
                   <Input
                     type="number"
                     inputMode="decimal"
                     step="0.01"
                     className="mt-1 h-12 text-center text-xl font-black"
-                    value={paid}
+                    value={paidStr}
                     onChange={(e) =>
                       setPaidInputs((p) => ({
                         ...p,
@@ -85,18 +137,41 @@ export function DeliverClient({ orders }: { orders: Order[] }) {
                     }
                     onBlur={() =>
                       startTransition(async () => {
-                        if (!paid) return;
-                        await paymentAction(order.id, Number(paid));
+                        const n = Number(paidStr);
+                        if (!paidStr || !Number.isFinite(n) || n < 0) return;
+                        const result = await paymentAction(order.id, n);
+                        if (!result.ok) {
+                          toast.error(result.error || "Could not save payment");
+                          return;
+                        }
                         router.refresh();
                       })
                     }
                   />
                 </div>
                 <div className="rounded-2xl bg-lr-yellow p-3">
-                  <p className="text-xs font-bold uppercase">Change</p>
-                  <p className="text-3xl font-black">{formatMoney(change)}</p>
+                  <p className="text-xs font-bold uppercase">Change to give</p>
+                  <p className="text-3xl font-black">
+                    {ready ? formatMoney(change) : "—"}
+                  </p>
                 </div>
               </div>
+
+              {!ready ? (
+                <p className="mt-3 text-sm font-semibold text-amber-700">
+                  Save shelf prices in Shop, then Finish Shopping — then change
+                  will calculate from actual snack cost + fee.
+                </p>
+              ) : invalidCash ? (
+                <p className="mt-3 text-sm font-semibold text-red-700">
+                  Enter a valid cash amount collected.
+                </p>
+              ) : underpaid ? (
+                <p className="mt-3 text-sm font-semibold text-red-700">
+                  Cash collected is less than actual due (
+                  {formatMoney(actualDue)}).
+                </p>
+              ) : null}
 
               <ul className="mt-4 space-y-1 text-sm text-neutral-600">
                 {(order.items ?? [])
@@ -107,7 +182,7 @@ export function DeliverClient({ orders }: { orders: Order[] }) {
                       {item.replacement_name || item.product_name}
                       {item.actual_price != null || item.replacement_price != null
                         ? ` — ${formatMoney((item.replacement_price ?? item.actual_price ?? 0) * item.quantity)}`
-                        : ""}
+                        : " — price pending"}
                     </li>
                   ))}
               </ul>
@@ -116,12 +191,26 @@ export function DeliverClient({ orders }: { orders: Order[] }) {
                 <Button
                   size="lg"
                   className="w-full flex-1"
-                  disabled={pending}
+                  disabled={pending || !ready || underpaid || invalidCash}
                   onClick={() =>
                     startTransition(async () => {
-                      if (paid) await paymentAction(order.id, Number(paid), "paid");
-                      await deliverAction(order.id);
-                      toast.success(`Delivered to ${order.customer_name}`);
+                      if (!paidValid) {
+                        toast.error("Enter a valid cash amount");
+                        return;
+                      }
+                      const paid = await paymentAction(order.id, paidNum);
+                      if (!paid.ok) {
+                        toast.error(paid.error || "Could not save payment");
+                        return;
+                      }
+                      const delivered = await deliverAction(order.id);
+                      if (!delivered.ok) {
+                        toast.error(delivered.error || "Deliver failed");
+                        return;
+                      }
+                      toast.success(
+                        `Delivered · give ${formatMoney(change)} change`,
+                      );
                       router.refresh();
                     })
                   }
@@ -135,7 +224,11 @@ export function DeliverClient({ orders }: { orders: Order[] }) {
                   disabled={pending}
                   onClick={() =>
                     startTransition(async () => {
-                      await notFoundAction(order.id);
+                      const result = await notFoundAction(order.id);
+                      if (!result.ok) {
+                        toast.error(result.error || "Update failed");
+                        return;
+                      }
                       toast.message("Couldn't find student — retry later");
                       router.refresh();
                     })
@@ -162,8 +255,8 @@ export function DeliverClient({ orders }: { orders: Order[] }) {
               >
                 <span className="font-bold">{o.customer_name}</span>
                 <span className="text-sm">
-                  {formatMoney(o.final_total)} · Change{" "}
-                  {formatMoney(o.change_owed)}
+                  Due {formatMoney(o.final_total)} · Change{" "}
+                  {formatMoney(changeDue(o))}
                 </span>
               </div>
             ))}

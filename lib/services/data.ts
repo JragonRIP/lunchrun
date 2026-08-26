@@ -12,7 +12,6 @@ import type {
 import type { CheckoutInput } from "@/lib/validation/schemas";
 
 export { isDemoMode };
-
 export { isOrderingOpen } from "@/lib/ordering";
 
 function api() {

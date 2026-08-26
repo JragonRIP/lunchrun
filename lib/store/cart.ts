@@ -17,9 +17,9 @@ interface CartState {
 
 function makeKey(item: Omit<CartItem, "key">): string {
   if (item.isCustom) {
-    return `custom-${item.name}-${item.maxPrice}-${Date.now()}`;
+    return `custom-${item.name}-${item.flavor ?? ""}-${item.maxPrice}-${Date.now()}`;
   }
-  return `product-${item.productId}-${item.substitution}`;
+  return `product-${item.productId}-${item.substitution}-${item.maxPrice}`;
 }
 
 export const useCartStore = create<CartState>()(
@@ -28,6 +28,7 @@ export const useCartStore = create<CartState>()(
       items: [],
       addItem: (item) => {
         const key = makeKey(item);
+        const qty = Math.min(20, Math.max(1, item.quantity || 1));
         set((state) => {
           const existing = state.items.find(
             (i) =>
@@ -40,12 +41,17 @@ export const useCartStore = create<CartState>()(
             return {
               items: state.items.map((i) =>
                 i.key === existing.key
-                  ? { ...i, quantity: i.quantity + item.quantity }
+                  ? {
+                      ...i,
+                      quantity: Math.min(20, i.quantity + qty),
+                    }
                   : i,
               ),
             };
           }
-          return { items: [...state.items, { ...item, key }] };
+          return {
+            items: [...state.items, { ...item, quantity: qty, key }],
+          };
         });
       },
       updateQuantity: (key, quantity) => {
@@ -55,7 +61,7 @@ export const useCartStore = create<CartState>()(
         }
         set((state) => ({
           items: state.items.map((i) =>
-            i.key === key ? { ...i, quantity } : i,
+            i.key === key ? { ...i, quantity: Math.min(20, quantity) } : i,
           ),
         }));
       },

@@ -126,14 +126,14 @@ export function OrdersClient({ orders }: { orders: Order[] }) {
                 </dd>
               </div>
               <div>
-                <dt className="text-neutral-400">Max auth</dt>
-                <dd className="font-bold">
+                <dt className="text-neutral-400">Collect now</dt>
+                <dd className="text-lg font-black text-lr-black">
                   {formatMoney(order.max_authorized_total)}
                 </dd>
               </div>
               <div>
-                <dt className="text-neutral-400">Payment</dt>
-                <dd className="font-bold">{order.payment_method}</dd>
+                <dt className="text-neutral-400">Cash collected</dt>
+                <dd className="font-bold">{formatMoney(order.amount_paid)}</dd>
               </div>
               <div>
                 <dt className="text-neutral-400">Location</dt>
@@ -151,34 +151,61 @@ export function OrdersClient({ orders }: { orders: Order[] }) {
                   disabled={pending}
                   onClick={() =>
                     startTransition(async () => {
-                      await paymentAction(
+                      const collect =
+                        order.final_total != null
+                          ? order.final_total
+                          : order.max_authorized_total;
+                      const result = await paymentAction(
                         order.id,
-                        order.final_total ?? order.max_authorized_total,
+                        collect,
                         "paid",
                       );
-                      toast.success("Marked paid");
+                      if (!result.ok) {
+                        toast.error(result.error || "Collect failed");
+                        return;
+                      }
+                      toast.success(`Collected ${formatMoney(collect)}`);
                       router.refresh();
                     })
                   }
                 >
-                  Mark Paid
+                  Collect{" "}
+                  {formatMoney(
+                    order.final_total != null
+                      ? order.final_total
+                      : order.max_authorized_total,
+                  )}
+                </Button>
+              ) : (
+                <div className="col-span-2 rounded-2xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 sm:col-span-1">
+                  Prepaid {formatMoney(order.amount_paid)}
+                  {order.final_total != null
+                    ? ` · change ${formatMoney(Math.max(0, order.amount_paid - order.final_total))}`
+                    : " · change after shopping"}
+                </div>
+              )}
+              {["purchased", "returning", "ready"].includes(order.status) ||
+              order.final_total != null ? (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  disabled={pending || order.status === "ready"}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const result = await statusAction(order.id, "ready");
+                      if (!result.ok) {
+                        toast.error(result.error || "Update failed");
+                        return;
+                      }
+                      toast.success("Marked ready for delivery");
+                      router.refresh();
+                    })
+                  }
+                >
+                  {order.status === "ready" ? "Ready" : "Mark Ready"}
                 </Button>
               ) : null}
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto"
-                disabled={pending}
-                onClick={() =>
-                  startTransition(async () => {
-                    await statusAction(order.id, "ready");
-                    toast.success("Marked ready");
-                    router.refresh();
-                  })
-                }
-              >
-                Mark Ready
-              </Button>
               <Button
                 size="lg"
                 variant="ghost"
@@ -186,7 +213,11 @@ export function OrdersClient({ orders }: { orders: Order[] }) {
                 disabled={pending}
                 onClick={() =>
                   startTransition(async () => {
-                    await statusAction(order.id, "cancelled");
+                    const result = await statusAction(order.id, "cancelled");
+                    if (!result.ok) {
+                      toast.error(result.error || "Cancel failed");
+                      return;
+                    }
                     toast.message("Order cancelled");
                     router.refresh();
                   })

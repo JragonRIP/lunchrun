@@ -35,6 +35,19 @@ export function OrderConfirmation({ order }: { order: Order }) {
           <Badge tone="success">{ORDER_STATUS_LABELS[order.status]}</Badge>
         </div>
 
+        <div className="mt-4 rounded-2xl bg-lr-yellow p-4 text-center">
+          <p className="text-xs font-bold uppercase tracking-wide text-lr-black/70">
+            Give the operator this cash now
+          </p>
+          <p className="mt-1 text-4xl font-black text-lr-black">
+            {formatMoney(order.max_authorized_total)}
+          </p>
+          <p className="mt-2 text-sm text-lr-black/70">
+            Covers your max snack prices + {formatMoney(order.service_fee)} fee.
+            You get change back at delivery if snacks cost less.
+          </p>
+        </div>
+
         <ul className="mt-4 space-y-2 border-b border-neutral-50 pb-4 text-sm">
           {(order.items ?? []).map((item) => (
             <li key={item.id} className="flex justify-between gap-3">
@@ -50,6 +63,14 @@ export function OrderConfirmation({ order }: { order: Order }) {
 
         <dl className="mt-4 space-y-2 text-sm">
           <Row
+            label="Estimated snacks"
+            value={formatMoneyRange(
+              order.merchandise_estimate_min,
+              order.merchandise_estimate_max,
+            )}
+          />
+          <Row label="Lunch Run fee" value={formatMoney(order.service_fee)} />
+          <Row
             label="Estimated total"
             value={formatMoneyRange(
               order.estimated_total_min,
@@ -57,10 +78,9 @@ export function OrderConfirmation({ order }: { order: Order }) {
             )}
           />
           <Row
-            label="Max authorized"
+            label="Cash to give now"
             value={formatMoney(order.max_authorized_total)}
           />
-          <Row label="Lunch Run fee" value={formatMoney(order.service_fee)} />
           <Row label="Payment" value="Cash Prepay" />
           <Row
             label="Find you"

@@ -107,8 +107,8 @@ export default async function AdminDashboardPage() {
                   <div>
                     <p className="font-bold">{o.customer_name}</p>
                     <p className="text-xs text-neutral-500">
-                      {o.order_code} · {o.items?.length ?? 0} items ·{" "}
-                      {formatMoney(o.max_authorized_total)} max
+                      {o.order_code} · {o.items?.length ?? 0} items · collect{" "}
+                      {formatMoney(o.max_authorized_total)}
                     </p>
                   </div>
                   <Badge

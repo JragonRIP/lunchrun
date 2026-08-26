@@ -153,28 +153,69 @@ export async function paymentAction(
   status?: Order["payment_status"],
 ) {
   const auth = await requireAdmin();
-  if (!auth.ok) return null;
+  if (!auth.ok) return { ok: false as const, error: auth.error };
+  if (!Number.isFinite(amountPaid) || amountPaid < 0) {
+    return { ok: false as const, error: "Invalid cash amount" };
+  }
   const order = await updateOrderPayment(orderId, amountPaid, status);
+  if (!order) return { ok: false as const, error: "Order not found" };
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/deliver");
-  return order;
+  return { ok: true as const, order };
 }
 
 export async function statusAction(orderId: string, status: Order["status"]) {
   const auth = await requireAdmin();
-  if (!auth.ok) return null;
+  if (!auth.ok) return { ok: false as const, error: auth.error };
+
+  if (status === "ready") {
+    const { getOrders } = await import("@/lib/services/data");
+    const orders = await getOrders();
+    const current = orders.find((o) => o.id === orderId);
+    if (!current) return { ok: false as const, error: "Order not found" };
+    if (
+      !["purchased", "returning", "ready"].includes(current.status) &&
+      current.final_total == null
+    ) {
+      return {
+        ok: false as const,
+        error: "Finish shopping before marking ready",
+      };
+    }
+  }
+
   const order = await updateOrderStatus(orderId, status);
+  if (!order) return { ok: false as const, error: "Order not found" };
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/deliver");
-  return order;
+  revalidatePath("/admin/shop");
+  return { ok: true as const, order };
 }
 
 export async function deliverAction(orderId: string) {
   const auth = await requireAdmin();
   if (!auth.ok) return { ok: false as const, error: auth.error };
-  await markDelivered(orderId);
+
+  const { getOrders } = await import("@/lib/services/data");
+  const current = (await getOrders()).find((o) => o.id === orderId);
+  if (!current) return { ok: false as const, error: "Order not found" };
+  if (current.final_total == null) {
+    return {
+      ok: false as const,
+      error: "Finish shopping and price all items before delivering",
+    };
+  }
+  if (current.amount_paid + 0.001 < current.final_total) {
+    return {
+      ok: false as const,
+      error: "Cash collected is less than the actual total due",
+    };
+  }
+
+  const order = await markDelivered(orderId);
+  if (!order) return { ok: false as const, error: "Order not found" };
   revalidatePath("/admin/deliver");
   revalidatePath("/admin");
   return { ok: true as const };
