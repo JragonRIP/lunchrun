@@ -92,12 +92,19 @@ export function CatalogClient({
         </div>
       ) : null}
 
+      {settings.test_mode ? (
+        <div className="rounded-2xl border border-amber-300 bg-amber-100 px-4 py-3 text-sm font-semibold text-amber-950">
+          Test mode is on — ordering stays open past the normal cutoff.
+        </div>
+      ) : null}
+
       <RunStatusCard
         session={session}
         store={store}
         orderingOpen={orderingOpen}
         orderCount={orderCount}
         maxOrders={session.max_orders || settings.max_daily_orders}
+        testMode={settings.test_mode}
       />
 
       <HowItWorks />

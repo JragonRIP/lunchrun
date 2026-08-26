@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   promo_fee: null,
   promo_label: null,
   promo_active: false,
+  test_mode: false,
 };
 
 export function effectiveServiceFee(settings: AppSettings): number {

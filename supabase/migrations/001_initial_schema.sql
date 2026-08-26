@@ -98,6 +98,7 @@ create table if not exists public.settings (
   promo_fee numeric(10,2),
   promo_label text,
   promo_active boolean not null default false,
+  test_mode boolean not null default false,
   updated_at timestamptz not null default now()
 );
 

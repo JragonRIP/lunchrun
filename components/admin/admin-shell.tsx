@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
+import { TestModeToggle } from "@/components/admin/test-mode-toggle";
 import { adminLogoutAction } from "@/lib/actions";
 import { cn } from "@/lib/utils";
 
@@ -49,9 +50,11 @@ function isActive(pathname: string, href: string, match: "exact" | "prefix" = "p
 export function AdminShell({
   children,
   demo,
+  testMode = false,
 }: {
   children: React.ReactNode;
   demo?: boolean;
+  testMode?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -101,9 +104,10 @@ export function AdminShell({
             );
           })}
         </nav>
-        <div className="border-t border-white/10 p-3">
+        <div className="space-y-2 border-t border-white/10 p-3">
+          <TestModeToggle enabled={testMode} compact variant="dark" />
           {demo ? (
-            <p className="mb-2 px-3 text-[11px] text-amber-300">Demo mode</p>
+            <p className="px-3 text-[11px] text-amber-300">Demo mode</p>
           ) : null}
           <button
             type="button"
@@ -121,6 +125,11 @@ export function AdminShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {testMode ? (
+          <div className="bg-amber-400 px-4 py-2 text-center text-xs font-black text-lr-black">
+            Test mode is on — students can order past cutoff
+          </div>
+        ) : null}
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
           <div className="min-w-0">
@@ -128,6 +137,7 @@ export function AdminShell({
             <p className="truncate text-xs font-bold text-neutral-500">{pageTitle}</p>
           </div>
           <div className="flex items-center gap-2">
+            <TestModeToggle enabled={testMode} compact variant="light" />
             <Link
               href="/admin/shop"
               className="rounded-xl bg-lr-yellow px-3 py-2 text-xs font-black text-lr-black"
@@ -202,6 +212,9 @@ export function AdminShell({
                 <p className="text-lg font-black">Admin menu</p>
                 {demo ? (
                   <p className="text-xs font-semibold text-amber-600">Demo mode</p>
+                ) : null}
+                {testMode ? (
+                  <p className="text-xs font-semibold text-amber-700">Test mode on</p>
                 ) : null}
               </div>
               <button

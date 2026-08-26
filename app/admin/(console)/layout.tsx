@@ -1,10 +1,15 @@
 import { AdminShell } from "@/components/admin/admin-shell";
-import { isDemoMode } from "@/lib/services/data";
+import { getSettings, isDemoMode } from "@/lib/services/data";
 
-export default function AdminConsoleLayout({
+export default async function AdminConsoleLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AdminShell demo={isDemoMode()}>{children}</AdminShell>;
+  const settings = await getSettings();
+  return (
+    <AdminShell demo={isDemoMode()} testMode={settings.test_mode}>
+      {children}
+    </AdminShell>
+  );
 }

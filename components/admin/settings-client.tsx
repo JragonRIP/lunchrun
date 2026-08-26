@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   saveSettingsAction,
   sessionStatusAction,
 } from "@/lib/actions";
+import { TestModeToggle } from "@/components/admin/test-mode-toggle";
 import type { AppSettings, Category, Store } from "@/lib/types";
 
 export function SettingsClient({
@@ -30,6 +31,10 @@ export function SettingsClient({
   );
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    setForm(settings);
+  }, [settings]);
+
   const set = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
@@ -39,6 +44,8 @@ export function SettingsClient({
         <h1 className="text-3xl font-black">Settings</h1>
         <p className="text-neutral-500">Fees, capacity, tax, and day controls</p>
       </div>
+
+      <TestModeToggle enabled={settings.test_mode} />
 
       <section className="space-y-3 rounded-3xl border bg-white p-5 shadow-sm">
         <h2 className="font-black">Pricing</h2>

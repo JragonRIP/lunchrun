@@ -9,6 +9,7 @@ import {
   recalculateOrderTotals,
   recordSubstitution,
 } from "@/lib/demo/store";
+import { isOrderingOpen } from "@/lib/ordering";
 import type {
   AppSettings,
   Category,
@@ -21,10 +22,9 @@ import type {
   Store,
 } from "@/lib/types";
 import { normalizeProductKey, roundMoney, sanitizeText } from "@/lib/utils";
-import { parseTimeToToday } from "@/lib/utils";
 import type { CheckoutInput } from "@/lib/validation/schemas";
 
-export { isDemoMode };
+export { isDemoMode, isOrderingOpen };
 
 export async function getCatalog(): Promise<{
   products: ProductWithCategory[];
@@ -68,18 +68,6 @@ export async function getCatalog(): Promise<{
   };
 }
 
-export function isOrderingOpen(
-  session: LunchRunSession,
-  settings: AppSettings,
-  orderCount: number,
-): boolean {
-  if (session.status === "cancelled" || session.status === "completed") return false;
-  if (session.status !== "open" && session.status !== "scheduled") return false;
-  if (orderCount >= (session.max_orders || settings.max_daily_orders)) return false;
-  const cutoff = parseTimeToToday(session.cutoff_time || settings.default_cutoff);
-  return Date.now() < cutoff.getTime();
-}
-
 export async function getOrderByToken(token: string): Promise<Order | null> {
   const state = getDemoState();
   return state.orders.find((o) => o.tracking_token === token) ?? null;
@@ -111,7 +99,10 @@ export async function submitOrder(input: CheckoutInput): Promise<
     return { ok: false, error: "Today's Lunch Run ordering has closed." };
   }
 
-  if (catalog.orderCount >= catalog.settings.max_daily_orders) {
+  if (
+    !catalog.settings.test_mode &&
+    catalog.orderCount >= catalog.settings.max_daily_orders
+  ) {
     return { ok: false, error: "Today's Lunch Run is full." };
   }
 
@@ -360,6 +351,18 @@ export async function saveSettings(settings: AppSettings) {
   }
   state.session.cutoff_time = settings.default_cutoff;
   state.session.max_orders = settings.max_daily_orders;
+  if (settings.test_mode) {
+    state.session.status = "open";
+  }
+  return state.settings;
+}
+
+export async function setTestMode(enabled: boolean) {
+  const state = getDemoState();
+  state.settings = { ...state.settings, test_mode: enabled };
+  if (enabled) {
+    state.session.status = "open";
+  }
   return state.settings;
 }
 

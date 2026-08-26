@@ -12,15 +12,17 @@ export function RunStatusCard({
   orderingOpen,
   orderCount,
   maxOrders,
+  testMode = false,
 }: {
   session: LunchRunSession;
   store: StoreType | null;
   orderingOpen: boolean;
   orderCount: number;
   maxOrders: number;
+  testMode?: boolean;
 }) {
   const [countdown, setCountdown] = useState("00:00");
-  const full = orderCount >= maxOrders;
+  const full = !testMode && orderCount >= maxOrders;
 
   useEffect(() => {
     const tick = () => {
@@ -47,7 +49,13 @@ export function RunStatusCard({
           </h2>
         </div>
         <Badge tone={closed || full ? "danger" : "yellow"}>
-          {full ? "Full" : closed ? "Ordering Closed" : "Ordering Open"}
+          {testMode
+            ? "Test mode"
+            : full
+              ? "Full"
+              : closed
+                ? "Ordering Closed"
+                : "Ordering Open"}
         </Badge>
       </div>
 
@@ -61,15 +69,19 @@ export function RunStatusCard({
         <div className="rounded-2xl bg-white/5 p-3">
           <p className="flex items-center gap-1 text-xs text-neutral-400">
             <Clock className="h-3.5 w-3.5" />
-            {closed ? "Status" : "Closes in"}
+            {testMode ? "Status" : closed ? "Status" : "Closes in"}
           </p>
           <p className="mt-1 font-mono text-2xl font-black text-lr-yellow">
-            {closed ? "Closed" : countdown}
+            {testMode ? "Open" : closed ? "Closed" : countdown}
           </p>
         </div>
       </div>
 
-      {full ? (
+      {testMode ? (
+        <p className="mt-4 text-sm text-amber-200">
+          Test mode is on — you can place orders past the normal cutoff.
+        </p>
+      ) : full ? (
         <p className="mt-4 text-sm text-amber-200">
           Today&apos;s Lunch Run is full. Check back tomorrow!
         </p>

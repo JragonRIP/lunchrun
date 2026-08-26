@@ -202,6 +202,8 @@ export interface AppSettings {
   promo_fee: number | null;
   promo_label: string | null;
   promo_active: boolean;
+  /** When true, ordering stays open past cutoff/capacity for testing. */
+  test_mode: boolean;
 }
 
 export interface PriceImportLog {

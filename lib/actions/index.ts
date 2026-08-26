@@ -17,6 +17,7 @@ import {
   reopenOrders,
   saveSettings,
   setItemUnavailable,
+  setTestMode,
   submitOrder,
   togglePickedUp,
   updateCategoryOrder,
@@ -196,6 +197,16 @@ export async function saveSettingsAction(raw: unknown) {
   }
   await saveSettings(parsed.data as AppSettings);
   revalidatePath("/");
+  revalidatePath("/admin/settings");
+  return { ok: true as const };
+}
+
+export async function setTestModeAction(enabled: boolean) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { ok: false as const, error: auth.error };
+  await setTestMode(enabled);
+  revalidatePath("/");
+  revalidatePath("/admin");
   revalidatePath("/admin/settings");
   return { ok: true as const };
 }

@@ -13,11 +13,11 @@ import type { CheckoutInput } from "@/lib/validation/schemas";
 
 export { isDemoMode };
 
+export { isOrderingOpen } from "@/lib/ordering";
+
 function api() {
   return isDemoMode() ? demo : sb;
 }
-
-export const isOrderingOpen = demo.isOrderingOpen;
 
 export async function getCatalog() {
   return api().getCatalog();
@@ -100,6 +100,10 @@ export async function getSettings(): Promise<AppSettings> {
 
 export async function saveSettings(settings: AppSettings) {
   return api().saveSettings(settings);
+}
+
+export async function setTestMode(enabled: boolean) {
+  return api().setTestMode(enabled);
 }
 
 export async function updateSessionStatus(

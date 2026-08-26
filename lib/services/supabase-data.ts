@@ -1,4 +1,5 @@
 import { effectiveServiceFee } from "@/lib/constants";
+import { isOrderingOpen } from "@/lib/ordering";
 import { createServiceClient } from "@/lib/supabase/admin";
 import type {
   AppSettings,
@@ -20,12 +21,13 @@ import {
   generateOrderCode,
   generateTrackingToken,
   normalizeProductKey,
-  parseTimeToToday,
   roundMoney,
   sanitizeText,
 } from "@/lib/utils";
 import type { CheckoutInput } from "@/lib/validation/schemas";
 import type { SupabaseClient } from "@supabase/supabase-js";
+
+export { isOrderingOpen };
 
 type Db = SupabaseClient;
 
@@ -120,6 +122,7 @@ function mapSettings(row: Record<string, unknown>): AppSettings {
     promo_fee: numOrNull(row.promo_fee),
     promo_label: (row.promo_label as string | null) ?? null,
     promo_active: Boolean(row.promo_active),
+    test_mode: Boolean(row.test_mode),
   };
 }
 
@@ -437,18 +440,6 @@ function buildShoppingListFrom(
   );
 }
 
-export function isOrderingOpen(
-  session: LunchRunSession,
-  settings: AppSettings,
-  orderCount: number,
-): boolean {
-  if (session.status === "cancelled" || session.status === "completed") return false;
-  if (session.status !== "open" && session.status !== "scheduled") return false;
-  if (orderCount >= (session.max_orders || settings.max_daily_orders)) return false;
-  const cutoff = parseTimeToToday(session.cutoff_time || settings.default_cutoff);
-  return Date.now() < cutoff.getTime();
-}
-
 export async function getCatalog(): Promise<{
   products: ProductWithCategory[];
   categories: Category[];
@@ -558,7 +549,10 @@ export async function submitOrder(input: CheckoutInput): Promise<
     return { ok: false, error: "Today's Lunch Run ordering has closed." };
   }
 
-  if (catalog.orderCount >= catalog.settings.max_daily_orders) {
+  if (
+    !catalog.settings.test_mode &&
+    catalog.orderCount >= catalog.settings.max_daily_orders
+  ) {
     return { ok: false, error: "Today's Lunch Run is full." };
   }
 
@@ -1051,6 +1045,7 @@ export async function saveSettings(settings: AppSettings) {
       promo_fee: settings.promo_fee,
       promo_label: settings.promo_label,
       promo_active: settings.promo_active,
+      test_mode: settings.test_mode,
       updated_at: new Date().toISOString(),
     })
     .eq("id", 1);
@@ -1063,8 +1058,28 @@ export async function saveSettings(settings: AppSettings) {
     delivery_window: settings.default_delivery_window,
   };
   if (settings.active_store_id) sessionPatch.store_id = settings.active_store_id;
+  if (settings.test_mode) sessionPatch.status = "open";
   await db.from("lunch_run_sessions").update(sessionPatch).eq("id", session.id);
 
+  return settings;
+}
+
+export async function setTestMode(enabled: boolean) {
+  const db = createServiceClient();
+  const { error } = await db
+    .from("settings")
+    .update({
+      test_mode: enabled,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", 1);
+  if (error) throw error;
+
+  if (enabled) {
+    await reopenOrders();
+  }
+
+  const settings = await fetchSettings(db);
   return settings;
 }
 

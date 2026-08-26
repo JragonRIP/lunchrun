@@ -98,6 +98,7 @@ export const settingsSchema = z.object({
   promo_fee: z.coerce.number().min(0).max(20).nullable(),
   promo_label: z.string().nullable(),
   promo_active: z.boolean(),
+  test_mode: z.boolean().default(false),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
