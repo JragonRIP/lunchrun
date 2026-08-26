@@ -1,19 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Package, ShoppingCart } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { useCartStore } from "@/lib/store/cart";
 import { useMyOrdersStore } from "@/lib/store/my-orders";
 import { useOrderFlowStore } from "@/lib/store/order-flow";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const LOGO_TAP_WINDOW_MS = 2500;
+const LOGO_TAPS_FOR_ADMIN = 5;
 
 export function CustomerHeader() {
+  const router = useRouter();
+  const pathname = usePathname();
   const items = useCartStore((s) => s.items);
   const orders = useMyOrdersStore((s) => s.orders);
   const openCart = useOrderFlowStore((s) => s.openCart);
   const [count, setCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
+  const logoTaps = useRef(0);
+  const logoTapReset = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setCount(items.reduce((sum, i) => sum + i.quantity, 0));
@@ -23,12 +31,42 @@ export function CustomerHeader() {
     setOrderCount(orders.length);
   }, [orders]);
 
+  useEffect(() => {
+    return () => {
+      if (logoTapReset.current) clearTimeout(logoTapReset.current);
+    };
+  }, []);
+
+  function handleLogoClick() {
+    logoTaps.current += 1;
+    if (logoTapReset.current) clearTimeout(logoTapReset.current);
+
+    if (logoTaps.current >= LOGO_TAPS_FOR_ADMIN) {
+      logoTaps.current = 0;
+      router.push("/admin/login");
+      return;
+    }
+
+    if (logoTaps.current === 1 && pathname !== "/") {
+      router.push("/");
+    }
+
+    logoTapReset.current = setTimeout(() => {
+      logoTaps.current = 0;
+    }, LOGO_TAP_WINDOW_MS);
+  }
+
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-lr-black text-white">
       <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
-        <Link href="/" aria-label="Lunch Run home">
+        <button
+          type="button"
+          onClick={handleLogoClick}
+          className="rounded-xl text-left transition active:scale-[0.98]"
+          aria-label="Lunch Run"
+        >
           <Logo light size="md" />
-        </Link>
+        </button>
         <div className="flex items-center gap-2">
           <Link
             href="/track"
