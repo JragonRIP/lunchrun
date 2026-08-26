@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PLACEHOLDER_IMAGE, effectiveServiceFee } from "@/lib/constants";
+import { ProductThumb } from "@/components/shared/product-thumb";
+import { effectiveServiceFee } from "@/lib/constants";
 import { useCartStore } from "@/lib/store/cart";
 import type { AppSettings } from "@/lib/types";
 import {
@@ -69,16 +69,10 @@ export function CartClient({
             className="rounded-2xl border border-neutral-100 bg-white p-3 shadow-sm"
           >
             <div className="flex gap-3">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
-                <Image
-                  src={item.imageUrl || PLACEHOLDER_IMAGE}
-                  alt={item.name}
-                  fill
-                  className="object-cover"
-                  sizes="64px"
-                  unoptimized={!item.imageUrl}
-                />
-              </div>
+              <ProductThumb
+                name={item.name}
+                imageUrl={item.imageUrl}
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -148,12 +142,12 @@ export function CartClient({
           strong
         />
         <div className="mt-4 rounded-2xl bg-lr-yellow/30 p-4">
-          <p className="text-sm font-bold">Cash to give operator</p>
+          <p className="text-sm font-bold">Cash to give operator now</p>
           <p className="text-3xl font-black">{formatMoney(maxAuth)}</p>
           <p className="mt-2 text-xs text-neutral-600">
-            Hand over this amount before shopping (max snack prices +{" "}
-            {formatMoney(fee)} fee). You get change at delivery if snacks cost
-            less.
+            Estimated snacks {formatMoneyRange(merchMin, merchMax)} +{" "}
+            {formatMoney(fee)} Lunch Run fee. Final bill = actual shelf prices +
+            fee; unused cash comes back as change at delivery.
           </p>
         </div>
       </div>

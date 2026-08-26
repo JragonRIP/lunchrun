@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { AlertTriangle, Check } from "lucide-react";
+import { ProductThumb } from "@/components/shared/product-thumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,8 @@ import {
   substituteAction,
   togglePickedAction,
 } from "@/lib/actions";
-import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import type { ShoppingListItem } from "@/lib/types";
-import { SUBSTITUTION_LABELS, formatMoney, roundMoney } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import { SUBSTITUTION_LABELS, cn, formatMoney, roundMoney } from "@/lib/utils";
 
 export function ShopClient({ items }: { items: ShoppingListItem[] }) {
   const router = useRouter();
@@ -135,16 +133,7 @@ export function ShopClient({ items }: { items: ShoppingListItem[] }) {
                 )}
               >
                 <div className="flex gap-3">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
-                    <Image
-                      src={item.imageUrl || PLACEHOLDER_IMAGE}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                      unoptimized
-                    />
-                  </div>
+                  <ProductThumb name={item.name} imageUrl={item.imageUrl} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div>

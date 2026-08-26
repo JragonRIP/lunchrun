@@ -169,6 +169,7 @@ export function CatalogClient({
             <ProductCard
               key={product.id}
               product={product}
+              orderingOpen={liveOpen}
               onAdd={(p) => {
                 if (!liveOpen) {
                   toast.error("Today's ordering has closed.");
@@ -185,6 +186,7 @@ export function CatalogClient({
         <Button
           variant="outline"
           className="w-full"
+          disabled={!liveOpen}
           onClick={() => {
             if (!liveOpen) {
               toast.error("Today's ordering has closed.");
@@ -193,7 +195,9 @@ export function CatalogClient({
             setCustomOpen(true);
           }}
         >
-          Can&apos;t find it? Request a custom item
+          {liveOpen
+            ? "Can't find it? Request a custom item"
+            : "Ordering closed — custom requests unavailable"}
         </Button>
       ) : null}
 

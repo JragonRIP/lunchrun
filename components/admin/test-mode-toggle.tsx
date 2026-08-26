@@ -21,6 +21,15 @@ export function TestModeToggle({
 
   function toggle() {
     const next = !enabled;
+    if (next) {
+      const ok = window.confirm(
+        "Turn on TEST MODE?\n\n" +
+          "Students will be able to place orders even after cutoff and past daily capacity.\n\n" +
+          "Only use this for practice. Turn it OFF before sharing the QR code or going live.",
+      );
+      if (!ok) return;
+    }
+
     startTransition(async () => {
       const result = await setTestModeAction(next);
       if (!result.ok) {
@@ -73,7 +82,8 @@ export function TestModeToggle({
           </div>
           <p className="mt-1 text-sm text-neutral-600">
             Keep ordering open past cutoff and capacity so you can place test
-            orders, shop, and deliver end-to-end. Turn off when you go live.
+            orders, shop, and deliver end-to-end. Turn off before students use
+            the live QR link.
           </p>
         </div>
         <button
@@ -98,7 +108,8 @@ export function TestModeToggle({
       </div>
       {enabled ? (
         <p className="mt-3 text-xs font-bold text-amber-800">
-          Students can order right now even after cutoff.
+          LIVE RISK: students can order right now even after cutoff. Turn this
+          off before public distribution.
         </p>
       ) : null}
     </section>

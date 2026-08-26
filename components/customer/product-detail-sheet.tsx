@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { Minus, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ProductThumb } from "@/components/shared/product-thumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { useCartStore } from "@/lib/store/cart";
 import type { ProductWithCategory, SubstitutionPreference } from "@/lib/types";
 import {
@@ -74,14 +73,13 @@ export function ProductDetailSheet({
           </button>
         </div>
 
-        <div className="relative mx-auto h-44 w-44 overflow-hidden rounded-3xl bg-neutral-100">
-          <Image
-            src={product.image_url || PLACEHOLDER_IMAGE}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="176px"
-            unoptimized={!product.image_url}
+        <div className="relative mx-auto flex justify-center">
+          <ProductThumb
+            name={product.name}
+            imageUrl={product.image_url}
+            categorySlug={product.category?.slug}
+            size="lg"
+            className="h-44 w-44 rounded-3xl"
           />
         </div>
 

@@ -1,16 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { ArrowLeft, Minus, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { ProductThumb } from "@/components/shared/product-thumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { placeOrderAction } from "@/lib/actions";
-import { PLACEHOLDER_IMAGE, effectiveServiceFee } from "@/lib/constants";
+import { effectiveServiceFee } from "@/lib/constants";
 import { useCartStore, usePreferencesStore } from "@/lib/store/cart";
 import { toSavedOrder, useMyOrdersStore } from "@/lib/store/my-orders";
 import { useOrderFlowStore } from "@/lib/store/order-flow";
@@ -132,16 +132,11 @@ export function OrderFlowSheet({
                   className="rounded-2xl border border-neutral-100 bg-white p-3"
                 >
                   <div className="flex gap-3">
-                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
-                      <Image
-                        src={item.imageUrl || PLACEHOLDER_IMAGE}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="56px"
-                        unoptimized={!item.imageUrl}
-                      />
-                    </div>
+                    <ProductThumb
+                      name={item.name}
+                      imageUrl={item.imageUrl}
+                      size="sm"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -211,11 +206,11 @@ export function OrderFlowSheet({
                   strong
                 />
                 <div className="mt-3 rounded-xl bg-lr-yellow/40 p-3">
-                  <p className="text-xs font-bold">Cash to give operator</p>
+                  <p className="text-xs font-bold">Cash to give operator now</p>
                   <p className="text-2xl font-black">{formatMoney(maxAuth)}</p>
                   <p className="mt-1 text-xs text-neutral-600">
-                    Max snack prices + {formatMoney(fee)} fee. Change returned
-                    at delivery.
+                    Max snack prices + {formatMoney(fee)} Lunch Run fee. Final
+                    bill uses shelf prices; unused cash returns as change.
                   </p>
                 </div>
               </div>

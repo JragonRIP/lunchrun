@@ -50,5 +50,4 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
-export const PLACEHOLDER_IMAGE =
-  "https://placehold.co/400x400/f5f5f5/1a1a1a?text=Snack";
+export const PLACEHOLDER_IMAGE: string | null = null;

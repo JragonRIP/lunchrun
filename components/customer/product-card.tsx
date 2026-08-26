@@ -1,17 +1,18 @@
 "use client";
 
-import Image from "next/image";
 import { Plus } from "lucide-react";
-import { formatMoney, formatMoneyRange } from "@/lib/utils";
-import { PLACEHOLDER_IMAGE } from "@/lib/constants";
+import { ProductThumb } from "@/components/shared/product-thumb";
+import { formatMoney, formatMoneyRange, cn } from "@/lib/utils";
 import type { ProductWithCategory } from "@/lib/types";
 
 export function ProductCard({
   product,
   onAdd,
+  orderingOpen = true,
 }: {
   product: ProductWithCategory;
   onAdd: (product: ProductWithCategory) => void;
+  orderingOpen?: boolean;
 }) {
   const priceLabel =
     product.current_price != null
@@ -19,35 +20,50 @@ export function ProductCard({
       : formatMoneyRange(product.min_price, product.max_price);
 
   return (
-    <article className="flex items-center gap-3 rounded-2xl border border-neutral-100 bg-white p-3 shadow-sm transition hover:border-neutral-200 hover:shadow-md">
-      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
-        <Image
-          src={product.image_url || PLACEHOLDER_IMAGE}
-          alt={product.name}
-          fill
-          className="object-cover"
-          sizes="64px"
-          unoptimized={!product.image_url}
-        />
-      </div>
+    <article
+      className={cn(
+        "flex items-center gap-3 rounded-2xl border border-neutral-100 bg-white p-3 shadow-sm transition",
+        orderingOpen
+          ? "hover:border-neutral-200 hover:shadow-md"
+          : "opacity-70",
+      )}
+    >
+      <ProductThumb
+        name={product.name}
+        imageUrl={product.image_url}
+        categorySlug={product.category?.slug}
+      />
       <button
         type="button"
         className="min-w-0 flex-1 text-left"
-        onClick={() => onAdd(product)}
+        onClick={() => orderingOpen && onAdd(product)}
+        disabled={!orderingOpen}
+        aria-disabled={!orderingOpen}
       >
         <h3 className="truncate font-bold text-lr-black">{product.name}</h3>
         <p className="truncate text-sm text-neutral-500">
           {[product.flavor, product.size].filter(Boolean).join(" · ") ||
             product.brand ||
+            product.category?.name ||
             "Snack"}
         </p>
         <p className="mt-1 text-sm font-semibold text-lr-black">{priceLabel}</p>
       </button>
       <button
         type="button"
-        onClick={() => onAdd(product)}
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lr-yellow text-lr-black transition hover:bg-yellow-300 active:scale-95"
-        aria-label={`Add ${product.name}`}
+        onClick={() => orderingOpen && onAdd(product)}
+        disabled={!orderingOpen}
+        className={cn(
+          "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition active:scale-95",
+          orderingOpen
+            ? "bg-lr-yellow text-lr-black hover:bg-yellow-300"
+            : "cursor-not-allowed bg-neutral-200 text-neutral-400",
+        )}
+        aria-label={
+          orderingOpen
+            ? `Add ${product.name}`
+            : `Ordering closed — cannot add ${product.name}`
+        }
       >
         <Plus className="h-5 w-5" strokeWidth={2.5} />
       </button>
