@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0a0a0a"/>
+  <rect x="96" y="96" width="320" height="320" rx="72" fill="#ffe500"/>
+  <text x="96" y="290" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="110" font-weight="900" fill="#0a0a0a">LR</text>
+</svg>
