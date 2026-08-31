@@ -204,6 +204,9 @@ export interface AppSettings {
   promo_active: boolean;
   /** When true, ordering stays open past cutoff/capacity for testing. */
   test_mode: boolean;
+  venmo_username: string | null;
+  cashapp_cashtag: string | null;
+  stripe_enabled: boolean;
 }
 
 export interface PriceImportLog {

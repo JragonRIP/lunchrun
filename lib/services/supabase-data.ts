@@ -1,4 +1,5 @@
 import { effectiveServiceFee } from "@/lib/constants";
+import { getAvailablePaymentMethods, normalizePaymentMethodId } from "@/lib/payments";
 import { isOrderingOpen, isSessionAcceptingOrders } from "@/lib/ordering";
 import { recalculateOrderTotals, shoppingItemKey } from "@/lib/order-money";
 import { createServiceClient } from "@/lib/supabase/admin";
@@ -118,13 +119,16 @@ function mapSettings(row: Record<string, unknown>): AppSettings {
     delivery_locations: Array.isArray(locations)
       ? (locations as string[])
       : ["Cafeteria", "Commons", "Hallway", "Outside cafeteria", "Other"],
-    payment_methods: Array.isArray(methods) ? (methods as string[]) : ["Cash Prepay"],
+    payment_methods: Array.isArray(methods) ? (methods as string[]) : ["cash"],
     allow_custom_requests: Boolean(row.allow_custom_requests ?? true),
     allow_substitutions: Boolean(row.allow_substitutions ?? true),
     promo_fee: numOrNull(row.promo_fee),
     promo_label: (row.promo_label as string | null) ?? null,
     promo_active: Boolean(row.promo_active),
     test_mode: Boolean(row.test_mode),
+    venmo_username: (row.venmo_username as string | null) ?? null,
+    cashapp_cashtag: (row.cashapp_cashtag as string | null) ?? null,
+    stripe_enabled: Boolean(row.stripe_enabled),
   };
 }
 
@@ -588,6 +592,12 @@ export async function submitOrder(input: CheckoutInput): Promise<
     };
   }
 
+  const paymentId = normalizePaymentMethodId(input.paymentMethod);
+  const allowed = getAvailablePaymentMethods(catalog.settings);
+  if (!paymentId || !allowed.includes(paymentId)) {
+    return { ok: false, error: "That payment method is not available right now." };
+  }
+
   const db = createServiceClient();
   const fee = effectiveServiceFee(catalog.settings);
   const tipAmount = input.tipAmount ?? 0;
@@ -620,7 +630,7 @@ export async function submitOrder(input: CheckoutInput): Promise<
       delivery_location_other: input.deliveryLocationOther
         ? sanitizeText(input.deliveryLocationOther, 120)
         : null,
-      payment_method: sanitizeText(input.paymentMethod, 40),
+      payment_method: paymentId,
       notes: input.notes ? sanitizeText(input.notes, 400) : null,
       tip_amount: tipAmount,
       status: "received",
@@ -992,6 +1002,34 @@ export async function updateOrderPayment(
   return order;
 }
 
+export async function applyStripeCheckoutComplete(
+  sessionId: string,
+  paymentIntentId: string | null,
+  orderId: string,
+  amountCents: number,
+) {
+  const db = createServiceClient();
+  const amount = roundMoney(amountCents / 100);
+
+  await db
+    .from("orders")
+    .update({
+      stripe_session_id: sessionId,
+      stripe_payment_intent_id: paymentIntentId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId);
+
+  await db.from("payments").insert({
+    order_id: orderId,
+    amount,
+    method: "stripe",
+    note: `Checkout ${sessionId}`,
+  });
+
+  return updateOrderPayment(orderId, amount, "paid");
+}
+
 export async function updateOrderStatus(orderId: string, status: Order["status"]) {
   const db = createServiceClient();
   const settings = await fetchSettings(db);
@@ -1071,6 +1109,9 @@ export async function saveSettings(settings: AppSettings) {
       active_store_id: settings.active_store_id,
       delivery_locations: settings.delivery_locations,
       payment_methods: settings.payment_methods,
+      venmo_username: settings.venmo_username,
+      cashapp_cashtag: settings.cashapp_cashtag,
+      stripe_enabled: settings.stripe_enabled,
       allow_custom_requests: settings.allow_custom_requests,
       allow_substitutions: settings.allow_substitutions,
       promo_fee: settings.promo_fee,

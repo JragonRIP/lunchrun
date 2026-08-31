@@ -6,11 +6,19 @@ import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { getPaymentMethodLabel } from "@/lib/payments";
 import { toSavedOrder, useMyOrdersStore } from "@/lib/store/my-orders";
-import type { Order } from "@/lib/types";
+import type { AppSettings, Order } from "@/lib/types";
 import { formatMoney, formatMoneyRange } from "@/lib/utils";
+import { PaymentInstructions } from "@/components/customer/payment-instructions";
 
-export function OrderStatusView({ order }: { order: Order }) {
+export function OrderStatusView({
+  order,
+  settings,
+}: {
+  order: Order;
+  settings: AppSettings;
+}) {
   const saveOrder = useMyOrdersStore((s) => s.saveOrder);
   const items = order.items ?? [];
   const purchased = items.filter(
@@ -110,10 +118,16 @@ export function OrderStatusView({ order }: { order: Order }) {
           </div>
           <div className="flex justify-between">
             <dt className="text-neutral-500">Payment</dt>
-            <dd className="font-semibold">{order.payment_method}</dd>
+            <dd className="font-semibold">
+              {getPaymentMethodLabel(order.payment_method)}
+            </dd>
           </div>
         </dl>
       </div>
+
+      {order.payment_status !== "paid" ? (
+        <PaymentInstructions order={order} settings={settings} />
+      ) : null}
 
       <section className="rounded-3xl border border-neutral-100 bg-white p-5 shadow-sm">
         <h2 className="font-black">What you ordered</h2>

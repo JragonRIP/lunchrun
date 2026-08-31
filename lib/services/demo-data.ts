@@ -10,6 +10,10 @@ import {
   recordSubstitution,
 } from "@/lib/demo/store";
 import { isOrderingOpen, isSessionAcceptingOrders } from "@/lib/ordering";
+import {
+  getAvailablePaymentMethods,
+  normalizePaymentMethodId,
+} from "@/lib/payments";
 import { msUntilCutoff } from "@/lib/time";
 import { shoppingItemKey } from "@/lib/order-money";
 import type {
@@ -172,13 +176,19 @@ export async function submitOrder(input: CheckoutInput): Promise<
     };
   }
 
+  const paymentId = normalizePaymentMethodId(input.paymentMethod);
+  const allowed = getAvailablePaymentMethods(catalog.settings);
+  if (!paymentId || !allowed.includes(paymentId)) {
+    return { ok: false, error: "That payment method is not available right now." };
+  }
+
   const order = createDemoOrder({
     customerName: sanitizeText(input.customerName, 60),
     deliveryLocation: sanitizeText(input.deliveryLocation, 80),
     deliveryLocationOther: input.deliveryLocationOther
       ? sanitizeText(input.deliveryLocationOther, 120)
       : null,
-    paymentMethod: sanitizeText(input.paymentMethod, 40),
+    paymentMethod: paymentId,
     notes: input.notes ? sanitizeText(input.notes, 400) : null,
     tipAmount: input.tipAmount ?? 0,
     items: input.items.map((i) => ({

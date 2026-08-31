@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { paymentAction, statusAction } from "@/lib/actions";
+import { getPaymentMethodLabel } from "@/lib/payments";
 import type { Order } from "@/lib/types";
 import { formatMoney, formatMoneyRange } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -134,6 +135,12 @@ export function OrdersClient({ orders }: { orders: Order[] }) {
               <div>
                 <dt className="text-neutral-400">Cash collected</dt>
                 <dd className="font-bold">{formatMoney(order.amount_paid)}</dd>
+              </div>
+              <div>
+                <dt className="text-neutral-400">Payment</dt>
+                <dd className="font-bold">
+                  {getPaymentMethodLabel(order.payment_method)}
+                </dd>
               </div>
               <div>
                 <dt className="text-neutral-400">Location</dt>

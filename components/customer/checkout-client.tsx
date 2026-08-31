@@ -8,7 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { placeOrderAction } from "@/lib/actions";
+import { PaymentMethodPicker } from "@/components/customer/payment-method-picker";
 import { effectiveServiceFee } from "@/lib/constants";
+import {
+  getAvailablePaymentMethods,
+  normalizePaymentMethodId,
+  PAYMENT_METHOD_META,
+  type PaymentMethodId,
+} from "@/lib/payments";
 import { useCartStore, usePreferencesStore } from "@/lib/store/cart";
 import type { AppSettings } from "@/lib/types";
 import { formatMoney, roundMoney } from "@/lib/utils";
@@ -27,10 +34,13 @@ export function CheckoutClient({
   const items = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
   const prefs = usePreferencesStore();
+  const availablePayments = getAvailablePaymentMethods(settings);
   const [name, setName] = useState(prefs.name || "");
   const [location, setLocation] = useState(prefs.location || "Cafeteria");
   const [locationOther, setLocationOther] = useState("");
-  const [payment, setPayment] = useState(settings.payment_methods[0] ?? "Cash");
+  const [payment, setPayment] = useState<PaymentMethodId>(
+    availablePayments[0] ?? "cash",
+  );
   const [notes, setNotes] = useState("");
   const [tip, setTip] = useState(0);
   const [pending, startTransition] = useTransition();
@@ -96,23 +106,11 @@ export function CheckoutClient({
 
         <div>
           <p className="mb-2 text-sm font-bold">Payment method</p>
-          <div className="flex flex-wrap gap-2">
-            {settings.payment_methods.map((method) => (
-              <button
-                key={method}
-                type="button"
-                onClick={() => setPayment(method)}
-                className={cn(
-                  "rounded-xl px-4 py-2.5 text-sm font-bold transition",
-                  payment === method
-                    ? "bg-lr-black text-white"
-                    : "bg-neutral-100 text-neutral-600",
-                )}
-              >
-                {method}
-              </button>
-            ))}
-          </div>
+          <PaymentMethodPicker
+            methods={availablePayments}
+            value={payment}
+            onChange={setPayment}
+          />
         </div>
 
         <div>
@@ -172,7 +170,12 @@ export function CheckoutClient({
           <Button
             size="lg"
             className="w-full"
-            disabled={!orderingOpen || pending || name.trim().length < 2}
+            disabled={
+              !orderingOpen ||
+              pending ||
+              name.trim().length < 2 ||
+              availablePayments.length === 0
+            }
             onClick={() => {
               startTransition(async () => {
                 const result = await placeOrderAction({
@@ -209,14 +212,37 @@ export function CheckoutClient({
                 prefs.setName(name.trim());
                 prefs.setLocation(location);
                 clear();
-                toast.success("Order placed!");
-                router.push(
-                  `/confirmed?token=${result.order.tracking_token}`,
+
+                const methodId = normalizePaymentMethodId(
+                  result.order.payment_method,
                 );
+                if (methodId === "stripe") {
+                  const res = await fetch("/api/stripe/checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      trackingToken: result.order.tracking_token,
+                    }),
+                  });
+                  const data = (await res.json()) as {
+                    url?: string;
+                    error?: string;
+                  };
+                  if (data.url) {
+                    window.location.href = data.url;
+                    return;
+                  }
+                  toast.error(data.error ?? "Could not open card checkout");
+                } else {
+                  toast.success("Order placed!");
+                }
+                router.push(`/confirmed?token=${result.order.tracking_token}`);
               });
             }}
           >
-            {pending ? "Placing…" : "Place Order"}
+            {pending
+              ? "Placing…"
+              : `Place Order · ${PAYMENT_METHOD_META[payment].shortLabel}`}
           </Button>
         </div>
       </div>

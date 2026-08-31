@@ -10,7 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { placeOrderAction } from "@/lib/actions";
+import { PaymentMethodPicker } from "@/components/customer/payment-method-picker";
 import { effectiveServiceFee } from "@/lib/constants";
+import {
+  getAvailablePaymentMethods,
+  normalizePaymentMethodId,
+  PAYMENT_METHOD_META,
+  type PaymentMethodId,
+} from "@/lib/payments";
 import { useCartStore, usePreferencesStore } from "@/lib/store/cart";
 import { toSavedOrder, useMyOrdersStore } from "@/lib/store/my-orders";
 import { useOrderFlowStore } from "@/lib/store/order-flow";
@@ -22,8 +29,6 @@ import {
   roundMoney,
 } from "@/lib/utils";
 
-const PAYMENT_METHOD = "Cash Prepay";
-
 export function OrderFlowSheet({
   settings,
   orderingOpen,
@@ -32,6 +37,7 @@ export function OrderFlowSheet({
   orderingOpen: boolean;
 }) {
   const router = useRouter();
+  const availablePayments = getAvailablePaymentMethods(settings);
   const { open, step, close, setStep, openCheckout } = useOrderFlowStore();
   const items = useCartStore((s) => s.items);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
@@ -44,6 +50,9 @@ export function OrderFlowSheet({
   const [location, setLocation] = useState(prefs.location || "Cafeteria");
   const [locationOther, setLocationOther] = useState("");
   const [notes, setNotes] = useState("");
+  const [payment, setPayment] = useState<PaymentMethodId>(
+    availablePayments[0] ?? "cash",
+  );
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -52,6 +61,12 @@ export function OrderFlowSheet({
       setLocation(prefs.location || "Cafeteria");
     }
   }, [open, prefs.name, prefs.location]);
+
+  useEffect(() => {
+    if (!availablePayments.includes(payment)) {
+      setPayment(availablePayments[0] ?? "cash");
+    }
+  }, [availablePayments, payment]);
 
   if (!open) return null;
 
@@ -218,13 +233,22 @@ export function OrderFlowSheet({
           ) : (
             <div className="space-y-4">
               <div className="rounded-2xl border border-lr-yellow/40 bg-lr-yellow/20 px-4 py-3 text-sm">
-                <p className="font-black">Cash prepay only</p>
-                <p className="mt-0.5 text-neutral-600">
-                  Hand the operator{" "}
-                  <strong>{formatMoney(maxAuth)}</strong> before they shop.
-                  That covers your max prices + {formatMoney(fee)} fee. You get
-                  change at delivery if the snacks cost less.
+                <p className="font-black">
+                  Prepay {formatMoney(maxAuth)} via{" "}
+                  {PAYMENT_METHOD_META[payment].shortLabel}
                 </p>
+                <p className="mt-0.5 text-neutral-600">
+                  {PAYMENT_METHOD_META[payment].description}
+                </p>
+              </div>
+
+              <div>
+                <p className="mb-2 text-sm font-bold">Payment method</p>
+                <PaymentMethodPicker
+                  methods={availablePayments}
+                  value={payment}
+                  onChange={setPayment}
+                />
               </div>
 
               <div>
@@ -311,7 +335,7 @@ export function OrderFlowSheet({
               <Button
                 size="lg"
                 className="w-full"
-                disabled={!orderingOpen || pending || name.trim().length < 2}
+                disabled={!orderingOpen || pending || name.trim().length < 2 || availablePayments.length === 0}
                 onClick={() => {
                   startTransition(async () => {
                     const result = await placeOrderAction({
@@ -319,7 +343,7 @@ export function OrderFlowSheet({
                       deliveryLocation: location,
                       deliveryLocationOther:
                         location === "Other" ? locationOther : null,
-                      paymentMethod: PAYMENT_METHOD,
+                      paymentMethod: payment,
                       notes: notes || null,
                       tipAmount: 0,
                       items: items.map((i) => ({
@@ -350,14 +374,47 @@ export function OrderFlowSheet({
                     saveOrder(toSavedOrder(result.order));
                     clear();
                     close();
-                    toast.success(
-                      `Order placed — give ${formatMoney(result.order.max_authorized_total)} cash now`,
-                    );
+
+                    const methodId =
+                      normalizePaymentMethodId(result.order.payment_method);
+
+                    if (methodId === "stripe") {
+                      const res = await fetch("/api/stripe/checkout", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          trackingToken: result.order.tracking_token,
+                        }),
+                      });
+                      const data = (await res.json()) as {
+                        url?: string;
+                        error?: string;
+                      };
+                      if (data.url) {
+                        window.location.href = data.url;
+                        return;
+                      }
+                      toast.error(data.error ?? "Could not open card checkout");
+                      router.push(
+                        `/confirmed?token=${result.order.tracking_token}`,
+                      );
+                      return;
+                    }
+
+                    if (methodId === "cash") {
+                      toast.success(
+                        `Order placed — give ${formatMoney(result.order.max_authorized_total)} cash now`,
+                      );
+                    } else {
+                      toast.success("Order placed — complete payment next");
+                    }
                     router.push(`/confirmed?token=${result.order.tracking_token}`);
                   });
                 }}
               >
-                {pending ? "Placing…" : "Place Order · Cash Prepay"}
+                {pending
+                  ? "Placing…"
+                  : `Place Order · ${PAYMENT_METHOD_META[payment].shortLabel}`}
               </Button>
             )}
           </div>

@@ -3,6 +3,7 @@
  * Usage: node --env-file=.env.local scripts/upsert-catalog.mjs
  */
 import { createClient } from "@supabase/supabase-js";
+import { withResolvedImages } from "./product-images.mjs";
 
 const STORE = "11111111-1111-1111-1111-111111111111";
 const CAT = {
@@ -21,7 +22,20 @@ function band(price) {
   };
 }
 
-function p(id, name, brand, description, size, flavor, category_id, price, popularity, max_quantity, external) {
+function p(
+  id,
+  name,
+  brand,
+  description,
+  size,
+  flavor,
+  category_id,
+  price,
+  popularity,
+  max_quantity,
+  external,
+  imagePath = null,
+) {
   const { min_price, max_price } = band(price);
   return {
     id,
@@ -42,14 +56,15 @@ function p(id, name, brand, description, size, flavor, category_id, price, popul
     last_price_update: new Date().toISOString(),
     external_product_id: external,
     max_quantity,
+    image_url: imagePath,
   };
 }
 
 /** Authoritative keep-list catalog */
 export const CATALOG = [
   // —— Energy: Monster ——
-  p("cccc0001-0000-4000-8000-000000000002", "Monster Energy Original", "Monster", "Classic green Monster", "16 oz", "Original", CAT.energy, 2.85, 96, 4, "dg-monster-original"),
-  p("cccc0001-0000-4000-8000-000000000001", "Monster Zero Ultra", "Monster", "Zero sugar, light citrus", "16 oz", "Zero Ultra", CAT.energy, 2.85, 98, 4, "dg-monster-zero-ultra"),
+  p("cccc0001-0000-4000-8000-000000000002", "Monster Energy Original", "Monster", "Classic green Monster", "16 oz", "Original", CAT.energy, 2.85, 96, 4, "dg-monster-original", "/products/dg-monster-original.png"),
+  p("cccc0001-0000-4000-8000-000000000001", "Monster Zero Ultra", "Monster", "Zero sugar, light citrus", "16 oz", "Zero Ultra", CAT.energy, 2.85, 98, 4, "dg-monster-zero-ultra", "/products/dg-monster-zero-ultra.png"),
   p("cccc0001-0000-4000-8000-000000000040", "Monster Ultra Rosá", "Monster", "Zero sugar, fruity floral", "16 oz", "Ultra Rosá", CAT.energy, 2.85, 88, 4, "dg-monster-ultra-rosa"),
   p("cccc0001-0000-4000-8000-000000000041", "Monster Ultra Paradise", "Monster", "Zero sugar, island fruit", "16 oz", "Ultra Paradise", CAT.energy, 2.85, 87, 4, "dg-monster-ultra-paradise"),
   p("cccc0001-0000-4000-8000-000000000042", "Monster Ultra Red White & Blue Razz", "Monster", "Zero sugar, blue raspberry rocket-pop", "16 oz", "Red White & Blue Razz", CAT.energy, 2.85, 86, 4, "dg-monster-ultra-rwb"),
@@ -59,7 +74,7 @@ export const CATALOG = [
   p("cccc0001-0000-4000-8000-000000000046", "Java Monster Loca Moca", "Monster", "Coffee mocha energy drink", "15 oz", "Loca Moca", CAT.energy, 3.15, 79, 4, "dg-java-loca-moca"),
   p("cccc0001-0000-4000-8000-000000000047", "Java Monster Irish Crème", "Monster", "Coffee Irish crème energy drink", "15 oz", "Irish Crème", CAT.energy, 3.15, 78, 4, "dg-java-irish-creme"),
   // —— Energy: Red Bull ——
-  p("cccc0001-0000-4000-8000-000000000003", "Red Bull Original", "Red Bull", "Classic energy drink", "8.4 oz", "Original", CAT.energy, 2.75, 95, 4, "dg-redbull"),
+  p("cccc0001-0000-4000-8000-000000000003", "Red Bull Original", "Red Bull", "Classic energy drink", "8.4 oz", "Original", CAT.energy, 2.75, 95, 4, "dg-redbull", "/products/dg-redbull.png"),
   p("cccc0001-0000-4000-8000-000000000048", "Red Bull Sugarfree", "Red Bull", "Sugar-free energy drink", "8.4 oz", "Sugarfree", CAT.energy, 2.75, 90, 4, "dg-redbull-sugarfree"),
   p("cccc0001-0000-4000-8000-000000000049", "Red Bull Zero", "Red Bull", "Zero calorie energy drink", "8.4 oz", "Zero", CAT.energy, 2.75, 89, 4, "dg-redbull-zero"),
   p("cccc0001-0000-4000-8000-00000000004a", "Red Bull Winter Edition Pear Cinnamon", "Red Bull", "Pear cinnamon winter edition", "8.4 oz", "Pear Cinnamon", CAT.energy, 2.95, 72, 4, "dg-redbull-pear-cinnamon"),
@@ -76,7 +91,7 @@ export const CATALOG = [
   p("cccc0001-0000-4000-8000-000000000055", "Red Bull Wild Berries", "Red Bull", "Wild berries", "8.4 oz", "Wild Berries", CAT.energy, 2.95, 80, 4, "dg-redbull-wild-berries"),
 
   // —— Chips / crackers ——
-  p("cccc0001-0000-4000-8000-000000000008", "Doritos Nacho Cheese", "Doritos", "Tortilla chips", "9.25 oz", "Nacho Cheese", CAT.chips, 3.15, 92, 3, "dg-doritos-nacho"),
+  p("cccc0001-0000-4000-8000-000000000008", "Doritos Nacho Cheese", "Doritos", "Tortilla chips", "9.25 oz", "Nacho Cheese", CAT.chips, 3.15, 92, 3, "dg-doritos-nacho", "/products/dg-doritos-nacho.png"),
   p("cccc0001-0000-4000-8000-000000000060", "Doritos Cool Ranch", "Doritos", "Tortilla chips", "9.25 oz", "Cool Ranch", CAT.chips, 3.15, 88, 3, "dg-doritos-cool-ranch"),
   p("cccc0001-0000-4000-8000-000000000061", "Doritos Sweet & Tangy BBQ", "Doritos", "Tortilla chips", "9.25 oz", "Sweet & Tangy BBQ", CAT.chips, 3.15, 80, 3, "dg-doritos-bbq"),
   p("cccc0001-0000-4000-8000-000000000062", "Doritos Flamin' Hot Nacho", "Doritos", "Flamin' Hot tortilla chips", "9.25 oz", "Flamin' Hot Nacho", CAT.chips, 3.15, 90, 3, "dg-doritos-fh-nacho"),
@@ -84,7 +99,7 @@ export const CATALOG = [
   p("cccc0001-0000-4000-8000-000000000064", "Cheetos Minis Cheddar Cheese", "Cheetos", "Mini cheddar cheese snacks", "1.25 oz", "Minis Cheddar", CAT.chips, 1.25, 78, 5, "dg-cheetos-minis"),
   p("cccc0001-0000-4000-8000-000000000065", "Cheetos Bold & Cheesy", "Cheetos", "Bold & cheesy snacks", "8 oz", "Bold & Cheesy", CAT.chips, 3.15, 77, 3, "dg-cheetos-bold"),
   p("cccc0001-0000-4000-8000-000000000066", "Cheetos Cheesy Jalapeño", "Cheetos", "Cheesy jalapeño snacks", "8 oz", "Cheesy Jalapeño", CAT.chips, 3.15, 81, 3, "dg-cheetos-jal"),
-  p("cccc0001-0000-4000-8000-000000000009", "Cheetos Flamin' Hot", "Cheetos", "Flamin' Hot cheese snacks", "8.5 oz", "Flamin' Hot", CAT.chips, 3.15, 91, 3, "dg-cheetos-fh"),
+  p("cccc0001-0000-4000-8000-000000000009", "Cheetos Flamin' Hot", "Cheetos", "Flamin' Hot cheese snacks", "8.5 oz", "Flamin' Hot", CAT.chips, 3.15, 91, 3, "dg-cheetos-fh", "/products/dg-cheetos-fh.png"),
   p("cccc0001-0000-4000-8000-000000000067", "Lay's Classic Potato Chips", "Lay's", "Classic potato chips", "8 oz", "Classic", CAT.chips, 3.25, 85, 3, "dg-lays-classic"),
   p("cccc0001-0000-4000-8000-000000000017", "Lay's Kettle Cooked Jalapeño", "Lay's", "Kettle cooked jalapeño chips", "8 oz", "Jalapeño", CAT.chips, 3.95, 83, 3, "dg-lays-kettle-jal"),
   p("cccc0001-0000-4000-8000-000000000068", "Ruffles Original", "Ruffles", "Ridged potato chips", "8.5 oz", "Original", CAT.chips, 3.25, 79, 3, "dg-ruffles-orig"),
@@ -92,9 +107,9 @@ export const CATALOG = [
   p("cccc0001-0000-4000-8000-00000000006a", "Fritos Flavor Twists Queso", "Fritos", "Queso flavor twists", "9 oz", "Queso", CAT.chips, 3.15, 74, 3, "dg-fritos-queso"),
   p("cccc0001-0000-4000-8000-00000000001b", "Tostitos Scoops", "Tostitos", "Scoop tortilla chips", "10 oz", "Scoops", CAT.chips, 4.5, 82, 3, "dg-tostitos-scoops"),
   p("cccc0001-0000-4000-8000-00000000006b", "Tostitos Original Restaurant Style", "Tostitos", "Restaurant style tortilla chips", "13 oz", "Original Restaurant Style", CAT.chips, 4.5, 75, 3, "dg-tostitos-restaurant"),
-  p("cccc0001-0000-4000-8000-00000000001a", "Pringles Original", "Pringles", "Stackable potato crisps", "2.3 oz", "Original", CAT.chips, 1.75, 84, 4, "dg-pringles-orig"),
+  p("cccc0001-0000-4000-8000-00000000001a", "Pringles Original", "Pringles", "Stackable potato crisps", "2.3 oz", "Original", CAT.chips, 1.75, 84, 4, "dg-pringles-orig", "/products/dg-pringles-orig.png"),
   p("cccc0001-0000-4000-8000-00000000006c", "Pringles Sour Cream & Onion", "Pringles", "Stackable potato crisps", "2.3 oz", "Sour Cream & Onion", CAT.chips, 1.75, 83, 4, "dg-pringles-sco"),
-  p("cccc0001-0000-4000-8000-000000000007", "Takis Fuego", "Takis", "Hot chili pepper & lime tortilla chips", "9.9 oz", "Fuego", CAT.chips, 4.15, 97, 3, "dg-takis-fuego"),
+  p("cccc0001-0000-4000-8000-000000000007", "Takis Fuego", "Takis", "Hot chili pepper & lime tortilla chips", "9.9 oz", "Fuego", CAT.chips, 4.15, 97, 3, "dg-takis-fuego", "/products/dg-takis-fuego.png"),
   p("cccc0001-0000-4000-8000-000000000016", "Munchies Cheese Fix", "Munchies", "Cheese snack mix", "8 oz", "Cheese Fix", CAT.chips, 3.65, 79, 3, "dg-munchies-cheese"),
   p("cccc0001-0000-4000-8000-00000000006d", "Goldfish Cheddar", "Goldfish", "Cheddar crackers", "6.6 oz", "Cheddar", CAT.chips, 2.95, 87, 3, "dg-goldfish-cheddar"),
   p("cccc0001-0000-4000-8000-000000000014", "Cheez-It Original", "Cheez-It", "Baked cheese crackers", "3 oz", "Original", CAT.chips, 1.25, 86, 4, "dg-cheezit-orig-3"),
@@ -102,9 +117,8 @@ export const CATALOG = [
   p("cccc0001-0000-4000-8000-000000000018", "Ritz Toasted Chips Sour Cream & Onion", "Ritz", "Toasted chips", "8.1 oz", "Sour Cream & Onion", CAT.chips, 4.35, 73, 3, "dg-ritz-sco"),
 
   // —— Cookies / bars ——
-  p("cccc0001-0000-4000-8000-00000000001e", "OREO Minis Original", "OREO", "Mini sandwich cookies", "3.5 oz", "Original", CAT.snacks, 1.5, 91, 4, "dg-oreo-minis"),
-  p("cccc0001-0000-4000-8000-00000000001d", "CHIPS AHOY! Minis Chocolate Chip", "CHIPS AHOY!", "Mini chocolate chip cookies", "3.5 oz", "Chocolate Chip", CAT.snacks, 1.5, 89, 4, "dg-chipsahoy-minis"),
-  p("cccc0001-0000-4000-8000-00000000006e", "CHIPS AHOY! Original Chocolate Chip", "CHIPS AHOY!", "Chocolate chip cookies", "13 oz", "Original Chocolate Chip", CAT.snacks, 3.75, 85, 3, "dg-chipsahoy-orig"),
+  p("cccc0001-0000-4000-8000-00000000001e", "OREO Original", "OREO", "Chocolate sandwich cookies", "13.7 oz", "Original", CAT.snacks, 4.5, 91, 3, "dg-oreo-orig", "/products/dg-oreo-orig.png"),
+  p("cccc0001-0000-4000-8000-00000000001d", "CHIPS AHOY! Original Chocolate Chip", "CHIPS AHOY!", "Real chocolate chip cookies", "18 oz", "Original", CAT.snacks, 4.75, 89, 3, "dg-chipsahoy-orig", "/products/dg-chipsahoy-orig.png"),
   p("cccc0001-0000-4000-8000-00000000001f", "CHIPS AHOY! Chunky Chocolatey Chip", "CHIPS AHOY!", "Chunky chocolate chip cookies", "11.75 oz", "Chunky", CAT.snacks, 4.0, 80, 3, "dg-chipsahoy-chunky"),
   p("cccc0001-0000-4000-8000-00000000006f", "CHIPS AHOY! Chewy Ice Cream Sandwich-Inspired", "CHIPS AHOY!", "Chewy ice cream sandwich-inspired cookies", "9.5 oz", "Chewy Ice Cream Sandwich", CAT.snacks, 3.75, 76, 3, "dg-chipsahoy-ice-cream"),
   p("cccc0001-0000-4000-8000-000000000024", "Nutter Butter Original Peanut Butter", "Nutter Butter", "Peanut butter sandwich cookies", "10.5 oz", "Original Peanut Butter", CAT.snacks, 5.0, 78, 2, "dg-nutter-butter"),
@@ -118,10 +132,10 @@ export const CATALOG = [
   // —— Candy ——
   p("cccc0001-0000-4000-8000-00000000002e", "M&M'S Milk Chocolate", "M&M'S", "Milk chocolate candies", "2.55 oz", "Milk Chocolate", CAT.candy, 1.5, 88, 5, "dg-mms-milk"),
   p("cccc0001-0000-4000-8000-00000000002f", "M&M'S Peanut", "M&M'S", "Peanut chocolate candies", "2.55 oz", "Peanut", CAT.candy, 1.5, 89, 5, "dg-mms-peanut"),
-  p("cccc0001-0000-4000-8000-000000000029", "REESE'S King Size Peanut Butter Cups", "Reese's", "King size peanut butter cups", "2.8 oz", "King Size", CAT.candy, 2.75, 93, 4, "dg-reeses-king"),
+  p("cccc0001-0000-4000-8000-000000000029", "REESE'S King Size Peanut Butter Cups", "Reese's", "King size peanut butter cups", "2.8 oz", "King Size", CAT.candy, 2.75, 93, 4, "dg-reeses-king", "/products/dg-reeses-king.png"),
   p("cccc0001-0000-4000-8000-00000000002a", "REESE'S THiNS Peanut Butter Cups", "Reese's", "Thin peanut butter cups", "1.55 oz", "THiNS", CAT.candy, 1.5, 84, 5, "dg-reeses-thins"),
-  p("cccc0001-0000-4000-8000-000000000028", "KIT KAT Milk Chocolate", "KIT KAT", "Chocolate wafer bar", "1.5 oz", "Milk Chocolate", CAT.candy, 1.75, 90, 5, "dg-kitkat"),
-  p("cccc0001-0000-4000-8000-00000000002c", "SNICKERS Original", "SNICKERS", "Chocolate peanut nougat bar", "1.86 oz", "Original", CAT.candy, 1.75, 94, 5, "dg-snickers"),
+  p("cccc0001-0000-4000-8000-000000000028", "KIT KAT Milk Chocolate", "KIT KAT", "Chocolate wafer bar", "1.5 oz", "Milk Chocolate", CAT.candy, 1.75, 90, 5, "dg-kitkat", "/products/dg-kitkat.png"),
+  p("cccc0001-0000-4000-8000-00000000002c", "SNICKERS Original", "SNICKERS", "Chocolate peanut nougat bar", "1.86 oz", "Original", CAT.candy, 1.75, 94, 5, "dg-snickers", "/products/dg-snickers.png"),
   p("cccc0001-0000-4000-8000-00000000002d", "TWIX Caramel Cookie", "TWIX", "Caramel cookie candy bar", "1.79 oz", "Caramel", CAT.candy, 1.5, 87, 5, "dg-twix"),
   p("cccc0001-0000-4000-8000-000000000027", "LIFE SAVERS Gummies 5 Flavors", "LIFE SAVERS", "5 flavors gummy candy", "3.22 oz", "5 Flavors", CAT.candy, 1.5, 75, 4, "dg-lifesavers-gummy"),
   p("cccc0001-0000-4000-8000-000000000030", "Mike and Ike Tropical Typhoon", "Mike and Ike", "Chewy fruit candy", "0.78 oz", "Tropical Typhoon", CAT.candy, 0.25, 76, 10, "dg-mikeike-tropical"),
@@ -136,18 +150,18 @@ export const CATALOG = [
   p("cccc0001-0000-4000-8000-000000000036", "Sweet Smiles Sour Neon Gummi Worms", "Sweet Smiles", "Sour neon gummi worms", "5 oz", "Sour Neon", CAT.candy, 1.0, 71, 4, "dg-ss-sour-worms"),
 
   // —— Drinks ——
-  p("cccc0001-0000-4000-8000-000000000005", "Coca-Cola Original", "Coca-Cola", "Classic cola", "20 oz", "Original", CAT.drinks, 1.75, 90, 4, "dg-coke-20"),
+  p("cccc0001-0000-4000-8000-000000000005", "Coca-Cola Original", "Coca-Cola", "Classic cola", "20 oz", "Original", CAT.drinks, 1.75, 90, 4, "dg-coke-20", "/products/dg-coke-20.png"),
   p("cccc0001-0000-4000-8000-000000000076", "Coca-Cola Vanilla", "Coca-Cola", "Vanilla cola", "20 oz", "Vanilla", CAT.drinks, 1.85, 74, 4, "dg-coke-vanilla"),
   p("cccc0001-0000-4000-8000-000000000077", "Diet Coke", "Coca-Cola", "Diet cola", "20 oz", "Diet Coke", CAT.drinks, 1.75, 78, 4, "dg-diet-coke"),
   p("cccc0001-0000-4000-8000-000000000078", "Sprite Original Lemon-Lime", "Sprite", "Lemon-lime soda", "20 oz", "Original Lemon-Lime", CAT.drinks, 1.75, 84, 4, "dg-sprite"),
-  p("cccc0001-0000-4000-8000-000000000004", "Dr Pepper Original", "Dr Pepper", "Soda", "20 oz", "Original", CAT.drinks, 1.75, 88, 4, "dg-drpepper-20"),
+  p("cccc0001-0000-4000-8000-000000000004", "Dr Pepper Original", "Dr Pepper", "Soda", "20 oz", "Original", CAT.drinks, 1.75, 88, 4, "dg-drpepper-20", "/products/dg-drpepper-20.png"),
   p("cccc0001-0000-4000-8000-000000000079", "Dr Pepper Cherry", "Dr Pepper", "Cherry soda", "20 oz", "Cherry", CAT.drinks, 1.85, 80, 4, "dg-drpepper-cherry"),
   p("cccc0001-0000-4000-8000-00000000007a", "Dr Pepper Cream Soda", "Dr Pepper", "Cream soda", "20 oz", "Cream Soda", CAT.drinks, 1.85, 76, 4, "dg-drpepper-cream"),
   p("cccc0001-0000-4000-8000-00000000007b", "Diet Dr Pepper", "Dr Pepper", "Diet soda", "20 oz", "Diet", CAT.drinks, 1.75, 73, 4, "dg-diet-drpepper"),
   p("cccc0001-0000-4000-8000-000000000011", "Pepsi Original", "Pepsi", "Cola", "20 oz", "Original", CAT.drinks, 1.75, 82, 4, "dg-pepsi-20"),
   p("cccc0001-0000-4000-8000-00000000007c", "Diet Pepsi", "Pepsi", "Diet cola", "20 oz", "Diet Pepsi", CAT.drinks, 1.75, 72, 4, "dg-diet-pepsi"),
   p("cccc0001-0000-4000-8000-00000000007d", "Pepsi Wild Cherry", "Pepsi", "Wild cherry cola", "20 oz", "Wild Cherry", CAT.drinks, 1.85, 75, 4, "dg-pepsi-wild-cherry"),
-  p("cccc0001-0000-4000-8000-000000000010", "Mountain Dew Original", "Mountain Dew", "Citrus soda", "20 oz", "Original", CAT.drinks, 1.75, 86, 4, "dg-mtn-dew-20"),
+  p("cccc0001-0000-4000-8000-000000000010", "Mountain Dew Original", "Mountain Dew", "Citrus soda", "20 oz", "Original", CAT.drinks, 1.75, 86, 4, "dg-mtn-dew-20", "/products/dg-mtn-dew-20.png"),
   p("cccc0001-0000-4000-8000-00000000007e", "Mountain Dew Code Red", "Mountain Dew", "Cherry citrus soda", "20 oz", "Code Red", CAT.drinks, 1.85, 81, 4, "dg-mtn-dew-code-red"),
   p("cccc0001-0000-4000-8000-00000000007f", "Mountain Dew Diet", "Mountain Dew", "Diet citrus soda", "20 oz", "Diet", CAT.drinks, 1.75, 68, 4, "dg-mtn-dew-diet"),
   p("cccc0001-0000-4000-8000-000000000080", "Mountain Dew Zero Sugar", "Mountain Dew", "Zero sugar citrus soda", "20 oz", "Zero Sugar", CAT.drinks, 1.75, 74, 4, "dg-mtn-dew-zero"),
@@ -182,19 +196,20 @@ function sqlLiteral(v) {
 }
 
 export function productsSql() {
-  const rows = CATALOG.map((row) => {
+  const catalog = withResolvedImages(CATALOG);
+  const rows = catalog.map((row) => {
     return `  (
     ${sqlLiteral(row.id)},
     ${sqlLiteral(row.name)}, ${sqlLiteral(row.brand)}, ${sqlLiteral(row.description)}, ${sqlLiteral(row.size)}, ${sqlLiteral(row.flavor)},
     ${sqlLiteral(row.category_id)}, ${sqlLiteral(row.store_id)},
-    ${row.current_price}, ${row.min_price}, ${row.max_price}, ${row.popularity}, true, true, false, now(), ${sqlLiteral(row.external_product_id)}, ${row.max_quantity}
+    ${row.current_price}, ${row.min_price}, ${row.max_price}, ${row.popularity}, true, true, false, now(), ${sqlLiteral(row.external_product_id)}, ${row.max_quantity}, ${sqlLiteral(row.image_url)}
   )`;
   }).join(",\n");
-  return `-- Products (${CATALOG.length} catalog items, Dollar General store)
+  return `-- Products (${catalog.length} catalog items, Dollar General store)
 insert into public.products (
   id, name, brand, description, size, flavor, category_id, store_id,
   current_price, min_price, max_price, popularity, available, active, archived,
-  last_price_update, external_product_id, max_quantity
+  last_price_update, external_product_id, max_quantity, image_url
 ) values
 ${rows}
 on conflict (id) do update set
@@ -214,7 +229,8 @@ on conflict (id) do update set
   archived = excluded.archived,
   last_price_update = excluded.last_price_update,
   external_product_id = excluded.external_product_id,
-  max_quantity = excluded.max_quantity;`;
+  max_quantity = excluded.max_quantity,
+  image_url = excluded.image_url;`;
 }
 
 const CAT_DEMO = {
@@ -245,14 +261,15 @@ if (isMain) {
   }
 
   const db = createClient(url, key, { auth: { persistSession: false } });
-  const { error } = await db.from("products").upsert(CATALOG, { onConflict: "id" });
+  const rows = withResolvedImages(CATALOG);
+  const { error } = await db.from("products").upsert(rows, { onConflict: "id" });
   if (error) {
     console.error(error);
     process.exit(1);
   }
 
   // Hide anything not on the keep-list
-  const keepIds = CATALOG.map((r) => r.id);
+  const keepIds = rows.map((r) => r.id);
   const { data: all, error: listErr } = await db.from("products").select("id");
   if (listErr) {
     console.error(listErr);
@@ -270,5 +287,7 @@ if (isMain) {
     }
   }
 
-  console.log(`Upserted ${CATALOG.length} products; archived ${drop.length} extras`);
+  console.log(`Upserted ${rows.length} products; archived ${drop.length} extras`);
+  const withImages = rows.filter((r) => r.image_url).length;
+  console.log(`${withImages} products have images`);
 }

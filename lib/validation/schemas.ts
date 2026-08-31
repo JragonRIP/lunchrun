@@ -99,6 +99,9 @@ export const settingsSchema = z.object({
   promo_label: z.string().nullable(),
   promo_active: z.boolean(),
   test_mode: z.boolean().default(false),
+  venmo_username: z.string().max(40).nullable().optional(),
+  cashapp_cashtag: z.string().max(40).nullable().optional(),
+  stripe_enabled: z.boolean().default(false),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

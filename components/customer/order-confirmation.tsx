@@ -5,12 +5,22 @@ import { useEffect } from "react";
 import { CheckCircle2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PaymentInstructions } from "@/components/customer/payment-instructions";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { getPaymentMethodLabel } from "@/lib/payments";
 import { toSavedOrder, useMyOrdersStore } from "@/lib/store/my-orders";
-import type { Order } from "@/lib/types";
+import type { AppSettings, Order } from "@/lib/types";
 import { formatMoney, formatMoneyRange } from "@/lib/utils";
 
-export function OrderConfirmation({ order }: { order: Order }) {
+export function OrderConfirmation({
+  order,
+  settings,
+  stripePaidHint,
+}: {
+  order: Order;
+  settings: AppSettings;
+  stripePaidHint?: boolean;
+}) {
   const saveOrder = useMyOrdersStore((s) => s.saveOrder);
 
   useEffect(() => {
@@ -35,18 +45,11 @@ export function OrderConfirmation({ order }: { order: Order }) {
           <Badge tone="success">{ORDER_STATUS_LABELS[order.status]}</Badge>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-lr-yellow p-4 text-center">
-          <p className="text-xs font-bold uppercase tracking-wide text-lr-black/70">
-            Give the operator this cash now
-          </p>
-          <p className="mt-1 text-4xl font-black text-lr-black">
-            {formatMoney(order.max_authorized_total)}
-          </p>
-          <p className="mt-2 text-sm text-lr-black/70">
-            Covers your max snack prices + {formatMoney(order.service_fee)} fee.
-            You get change back at delivery if snacks cost less.
-          </p>
-        </div>
+        <PaymentInstructions
+          order={order}
+          settings={settings}
+          stripePaidHint={stripePaidHint}
+        />
 
         <ul className="mt-4 space-y-2 border-b border-neutral-50 pb-4 text-sm">
           {(order.items ?? []).map((item) => (
@@ -78,10 +81,13 @@ export function OrderConfirmation({ order }: { order: Order }) {
             )}
           />
           <Row
-            label="Cash to give now"
+            label="Prepay amount"
             value={formatMoney(order.max_authorized_total)}
           />
-          <Row label="Payment" value="Cash Prepay" />
+          <Row
+            label="Payment"
+            value={getPaymentMethodLabel(order.payment_method)}
+          />
           <Row
             label="Find you"
             value={order.delivery_location_other || order.delivery_location}
@@ -119,7 +125,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-3">
       <dt className="text-neutral-500">{label}</dt>
-      <dd className="font-semibold capitalize">{value}</dd>
+      <dd className="font-semibold">{value}</dd>
     </div>
   );
 }

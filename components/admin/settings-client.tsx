@@ -13,6 +13,11 @@ import {
   sessionStatusAction,
 } from "@/lib/actions";
 import { TestModeToggle } from "@/components/admin/test-mode-toggle";
+import {
+  PAYMENT_METHOD_IDS,
+  PAYMENT_METHOD_META,
+  type PaymentMethodId,
+} from "@/lib/payments";
 import type { AppSettings, Category, Store } from "@/lib/types";
 
 export function SettingsClient({
@@ -170,7 +175,85 @@ export function SettingsClient({
       </section>
 
       <section className="space-y-3 rounded-3xl border bg-white p-5 shadow-sm">
-        <h2 className="font-black">Locations & payments</h2>
+        <h2 className="font-black">Payment methods</h2>
+        <p className="text-sm text-neutral-500">
+          Students prepay the max authorized amount. Change or refunds apply if
+          snacks cost less at delivery.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {PAYMENT_METHOD_IDS.map((id) => {
+            const enabled = form.payment_methods.includes(id);
+            return (
+              <label
+                key={id}
+                className="flex items-start gap-3 rounded-2xl border border-neutral-100 bg-neutral-50 px-3 py-3"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={enabled}
+                  onChange={(e) => {
+                    const next = e.target.checked
+                      ? [...form.payment_methods, id]
+                      : form.payment_methods.filter((m) => m !== id);
+                    set(
+                      "payment_methods",
+                      next.length ? next : (["cash"] as PaymentMethodId[]),
+                    );
+                  }}
+                />
+                <span>
+                  <span className="font-bold">{PAYMENT_METHOD_META[id].label}</span>
+                  <span className="block text-xs text-neutral-500">
+                    {PAYMENT_METHOD_META[id].description}
+                  </span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+        <Field label="Venmo username (without @)">
+          <Input
+            value={form.venmo_username ?? ""}
+            onChange={(e) =>
+              set("venmo_username", e.target.value.trim() || null)
+            }
+            placeholder="YourSchoolLunchRun"
+          />
+        </Field>
+        <Field label="Cash App $cashtag">
+          <Input
+            value={form.cashapp_cashtag ?? ""}
+            onChange={(e) =>
+              set("cashapp_cashtag", e.target.value.trim() || null)
+            }
+            placeholder="YourCashtag"
+          />
+        </Field>
+        <label className="flex items-center gap-2 text-sm font-bold">
+          <input
+            type="checkbox"
+            checked={form.stripe_enabled}
+            onChange={(e) => set("stripe_enabled", e.target.checked)}
+          />
+          Accept card payments (Stripe)
+        </label>
+        <p className="text-xs text-neutral-500">
+          Stripe needs{" "}
+          <code className="rounded bg-neutral-100 px-1">STRIPE_SECRET_KEY</code>,{" "}
+          <code className="rounded bg-neutral-100 px-1">
+            STRIPE_WEBHOOK_SECRET
+          </code>
+          , and a webhook pointing to{" "}
+          <code className="rounded bg-neutral-100 px-1">
+            /api/stripe/webhook
+          </code>
+          . Keys not visible in this UI — configure in Vercel env.
+        </p>
+      </section>
+
+      <section className="space-y-3 rounded-3xl border bg-white p-5 shadow-sm">
+        <h2 className="font-black">Locations & options</h2>
         <Field label="Delivery locations (comma-separated)">
           <Input
             value={form.delivery_locations.join(", ")}
@@ -182,22 +265,8 @@ export function SettingsClient({
             }
           />
         </Field>
-        <Field label="Payment note (shown to students)">
-          <Input
-            value={form.payment_methods.join(", ") || "Cash Prepay"}
-            onChange={(e) =>
-              set(
-                "payment_methods",
-                e.target.value
-                  ? e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
-                  : ["Cash Prepay"],
-              )
-            }
-            placeholder="Cash Prepay"
-          />
-        </Field>
         <p className="text-xs text-neutral-500">
-          Lunch Run is cash prepay by default — students pay when they pick up.
+          Lunch Run prepay — students authorize max snack prices + fee.
         </p>
         <label className="flex items-center gap-2 text-sm font-bold">
           <input

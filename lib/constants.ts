@@ -23,13 +23,16 @@ export const DEFAULT_SETTINGS: AppSettings = {
     "Outside cafeteria",
     "Other",
   ],
-  payment_methods: ["Cash Prepay"],
+  payment_methods: ["cash", "venmo", "cashapp", "stripe"],
   allow_custom_requests: true,
   allow_substitutions: true,
   promo_fee: null,
   promo_label: null,
   promo_active: false,
   test_mode: false,
+  venmo_username: null,
+  cashapp_cashtag: null,
+  stripe_enabled: false,
 };
 
 export function effectiveServiceFee(settings: AppSettings): number {

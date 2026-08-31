@@ -1,6 +1,6 @@
 import { OrderStatusView } from "@/components/customer/order-status-view";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getOrderByToken } from "@/lib/services/data";
+import { getOrderByToken, getSettings } from "@/lib/services/data";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +13,7 @@ export default async function OrderTokenPage({
 }) {
   const { token } = await params;
   const order = await getOrderByToken(token);
+  const settings = await getSettings();
 
   if (!order) {
     return (
@@ -28,5 +29,5 @@ export default async function OrderTokenPage({
     );
   }
 
-  return <OrderStatusView order={order} />;
+  return <OrderStatusView order={order} settings={settings} />;
 }

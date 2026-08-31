@@ -6,7 +6,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+  "fetch-product-images": "node scripts/fetch-product-images.mjs",
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -23,6 +23,7 @@
     "react-hook-form": "^7.86.0",
     "recharts": "^3.10.1",
     "sonner": "^2.0.8",
+    "stripe": "^22.6.0",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3",
     "zustand": "^5.0.15"
