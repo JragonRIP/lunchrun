@@ -6,7 +6,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-  "fetch-product-images": "node scripts/fetch-product-images.mjs",
+    "fetch-product-images": "node scripts/fetch-product-images.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
